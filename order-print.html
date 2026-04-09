@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order a 3D Print — Strange New Models</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04080f;--bg2:#070d18;--panel:#0a1220;--panel2:#0d1628;
+  --border:#112240;--border2:#1a3a6a;
+  --accent:#00b8ff;--accent2:#ff6b35;--gold:#ffd700;--green:#00ff88;
+  --text:#c8dff5;--dim:#4a6a90;--dim2:#2a4a70;--red:#ff4d6d;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(1px 1px at 15% 25%,rgba(255,255,255,0.4) 0%,transparent 100%),
+  radial-gradient(1px 1px at 70% 55%,rgba(255,255,255,0.3) 0%,transparent 100%),
+  radial-gradient(1px 1px at 40% 80%,rgba(255,255,255,0.35) 0%,transparent 100%),
+  radial-gradient(ellipse at 50% 0%,rgba(0,60,140,0.2) 0%,transparent 60%);}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(4,8,15,0.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.1rem;color:var(--accent);text-decoration:none;letter-spacing:0.08em;text-shadow:0 0 20px rgba(0,184,255,0.5);}
+.nav-logo span{color:var(--text);font-weight:400;}
+.nav-links{display:flex;align-items:center;gap:28px;list-style:none;}
+.nav-links a{color:var(--dim);text-decoration:none;font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;transition:color 0.2s;font-weight:600;}
+.nav-links a:hover{color:var(--accent);}
+.btn{font-family:'Orbitron',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;padding:9px 22px;border:none;border-radius:2px;cursor:pointer;text-decoration:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-outline{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+.btn-outline:hover{background:rgba(0,184,255,0.1);}
+
+/* PAGE */
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:88px 40px 80px;}
+
+.page-header{margin-bottom:40px;}
+.breadcrumb{font-size:0.78rem;color:var(--dim);margin-bottom:16px;}
+.breadcrumb a{color:var(--accent);text-decoration:none;}
+.breadcrumb a:hover{text-decoration:underline;}
+.page-header h1{font-family:'Orbitron',sans-serif;font-size:2rem;font-weight:700;color:#fff;margin-bottom:8px;}
+.page-header p{color:var(--dim);font-size:0.95rem;max-width:600px;line-height:1.7;}
+
+/* SHIP BANNER */
+.ship-banner{background:var(--panel);border:1px solid var(--border2);border-radius:4px;padding:20px 24px;margin-bottom:32px;display:flex;align-items:center;gap:20px;}
+.ship-banner-icon{font-size:2.5rem;flex-shrink:0;}
+.ship-banner-info h2{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:4px;}
+.ship-banner-info p{color:var(--dim);font-size:0.82rem;}
+.ship-banner-change{margin-left:auto;color:var(--accent);font-size:0.78rem;text-decoration:none;cursor:pointer;border:1px solid var(--border);padding:6px 12px;border-radius:2px;transition:all 0.15s;background:none;font-family:'Exo 2',sans-serif;}
+.ship-banner-change:hover{border-color:var(--accent);}
+
+/* LAYOUT */
+.order-layout{display:grid;grid-template-columns:1fr 340px;gap:32px;align-items:start;}
+
+/* FORM SECTIONS */
+.form-sections{display:flex;flex-direction:column;gap:4px;}
+
+.step{background:var(--panel);border:1px solid var(--border);border-radius:4px;overflow:hidden;transition:border-color 0.2s;}
+.step.active{border-color:var(--border2);}
+.step-header{padding:18px 24px;display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none;}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--dim2);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:0.75rem;font-weight:700;color:var(--dim);flex-shrink:0;transition:all 0.2s;}
+.step.active .step-num,.step.complete .step-num{background:var(--accent);color:#000;}
+.step.complete .step-num::after{content:'✓';}
+.step-title{font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:700;color:var(--text);letter-spacing:0.1em;text-transform:uppercase;}
+.step-summary{margin-left:auto;font-size:0.78rem;color:var(--accent);font-weight:500;}
+.step-body{padding:0 24px;max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding 0.2s;}
+.step.open .step-body{max-height:1000px;padding:0 24px 24px;}
+
+/* OPTION CARDS */
+.option-grid{display:grid;gap:10px;margin-bottom:16px;}
+.option-grid-2{grid-template-columns:1fr 1fr;}
+.option-grid-3{grid-template-columns:1fr 1fr 1fr;}
+.option-card{position:relative;border:2px solid var(--border);border-radius:3px;padding:14px 16px;cursor:pointer;transition:all 0.15s;background:var(--panel2);}
+.option-card:hover{border-color:var(--border2);}
+.option-card.selected{border-color:var(--accent);background:rgba(0,184,255,0.06);}
+.option-card input[type=radio],.option-card input[type=checkbox]{position:absolute;opacity:0;pointer-events:none;}
+.option-card-title{font-weight:600;color:#fff;font-size:0.88rem;margin-bottom:2px;}
+.option-card-sub{font-size:0.75rem;color:var(--dim);line-height:1.4;}
+.option-card-price{font-family:'Orbitron',sans-serif;font-size:0.82rem;font-weight:700;color:var(--gold);margin-top:6px;}
+.option-card-check{position:absolute;top:10px;right:10px;width:18px;height:18px;border:2px solid var(--border);border-radius:50%;transition:all 0.15s;}
+.option-card.selected .option-card-check{background:var(--accent);border-color:var(--accent);}
+.option-card.selected .option-card-check::after{content:'✓';color:#000;font-size:0.65rem;display:flex;align-items:center;justify-content:center;height:100%;}
+
+/* FORM FIELDS */
+.field-group{margin-bottom:16px;}
+.field-label{display:block;font-size:0.75rem;color:var(--dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:7px;}
+.field-input{width:100%;background:#060e1a;border:1px solid var(--border);color:#fff;font-family:'Exo 2',sans-serif;font-size:0.9rem;padding:10px 14px;border-radius:2px;outline:none;transition:border-color 0.2s;}
+.field-input:focus{border-color:var(--accent);}
+.field-input::placeholder{color:var(--dim2);}
+textarea.field-input{resize:vertical;min-height:90px;}
+.field-note{font-size:0.73rem;color:var(--dim);margin-top:5px;line-height:1.5;}
+
+.divider-label{font-family:'Orbitron',sans-serif;font-size:0.65rem;letter-spacing:0.2em;color:var(--dim);text-transform:uppercase;margin:16px 0 10px;display:flex;align-items:center;gap:10px;}
+.divider-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.info-box{background:rgba(0,184,255,0.04);border:1px solid rgba(0,184,255,0.12);border-radius:2px;padding:12px 14px;font-size:0.78rem;color:var(--dim);line-height:1.6;margin-bottom:12px;}
+.warn-box{background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.15);border-radius:2px;padding:12px 14px;font-size:0.78rem;color:var(--dim);line-height:1.6;margin-bottom:12px;}
+.warn-box strong,.info-box strong{color:var(--text);}
+
+.unavailable{opacity:0.4;pointer-events:none;}
+.unavailable-note{font-size:0.72rem;color:var(--accent2);margin-top:4px;}
+
+/* AGREEMENT */
+.agreement-box{background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:16px;margin-bottom:16px;}
+.agreement-text{font-size:0.8rem;color:var(--dim);line-height:1.75;margin-bottom:14px;}
+.agreement-text strong{color:var(--text);}
+.checkbox-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+.checkbox-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);flex-shrink:0;margin-top:2px;cursor:pointer;}
+.checkbox-row span{font-size:0.82rem;color:var(--text);line-height:1.5;}
+
+/* ORDER SUMMARY */
+.summary-panel{background:var(--panel);border:1px solid var(--border2);border-radius:4px;padding:24px;position:sticky;top:80px;}
+.summary-title{font-family:'Orbitron',sans-serif;font-size:0.75rem;letter-spacing:0.2em;color:var(--accent);text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.summary-ship{font-size:0.88rem;font-weight:600;color:#fff;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+
+.summary-lines{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.summary-line{display:flex;justify-content:space-between;font-size:0.82rem;}
+.summary-line span:first-child{color:var(--dim);}
+.summary-line span:last-child{color:var(--text);font-weight:500;}
+.summary-line.quote span:last-child{color:var(--accent2);}
+
+.summary-total{display:flex;justify-content:space-between;padding:14px 0;border-top:1px solid var(--border2);margin-top:4px;}
+.summary-total span:first-child{font-family:'Orbitron',sans-serif;font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);}
+.summary-total span:last-child{font-family:'Orbitron',sans-serif;font-size:1.3rem;font-weight:900;color:var(--gold);}
+.summary-total.quote span:last-child{font-size:1rem;color:var(--accent2);}
+
+.summary-note{font-size:0.72rem;color:var(--dim);line-height:1.6;margin-bottom:16px;}
+
+.submit-btn{width:100%;padding:15px;font-size:0.85rem;justify-content:center;background:var(--accent);color:#000;font-family:'Orbitron',sans-serif;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;transition:all 0.2s;}
+.submit-btn:hover{background:#33ccff;box-shadow:0 0 28px rgba(0,184,255,0.4);}
+.submit-btn:disabled{background:var(--dim2);color:var(--dim);cursor:not-allowed;box-shadow:none;}
+
+.progress-steps{display:flex;gap:4px;margin-bottom:20px;}
+.progress-step{flex:1;height:3px;background:var(--border);border-radius:2px;transition:background 0.3s;}
+.progress-step.done{background:var(--accent);}
+
+/* SUCCESS */
+.success-panel{display:none;text-align:center;padding:60px 40px;}
+.success-panel.show{display:block;}
+.success-icon{font-size:4rem;margin-bottom:20px;}
+.success-panel h2{font-family:'Orbitron',sans-serif;font-size:1.4rem;color:#fff;margin-bottom:12px;}
+.success-panel p{color:var(--dim);font-size:0.9rem;line-height:1.7;max-width:480px;margin:0 auto 24px;}
+
+/* MESSENGER */
+.messenger-bubble{position:fixed;bottom:28px;right:28px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#0084ff,#00c6ff);display:flex;align-items:center;justify-content:center;z-index:999;box-shadow:0 4px 20px rgba(0,132,255,0.5);transition:transform 0.2s;text-decoration:none;}
+.messenger-bubble:hover{transform:scale(1.1);}
+.messenger-bubble svg{width:28px;height:28px;fill:white;}
+
+/* TOAST */
+.toast{position:fixed;bottom:100px;right:28px;background:var(--panel);border:1px solid var(--accent2);border-radius:3px;padding:12px 20px;color:var(--accent2);font-size:0.82rem;z-index:3000;transform:translateX(120%);transition:transform 0.3s;max-width:280px;}
+.toast.show{transform:translateX(0);}
+
+@media(max-width:900px){
+  .order-layout{grid-template-columns:1fr;}
+  .summary-panel{position:static;}
+  nav{padding:0 20px;}
+  .nav-links{display:none;}
+  .page{padding:80px 20px 60px;}
+  .option-grid-3{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">✦ Strange<span>New</span>Models</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="catalogue.html">Catalogue</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div><a href="catalogue.html" class="btn btn-outline">← Back to Catalogue</a></div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="index.html">Home</a> › <a href="catalogue.html">Catalogue</a> › <span id="breadShip">Order a Print</span>
+    </div>
+    <h1>🖨 Order a 3D Print</h1>
+    <p>Get your chosen ship printed, painted and delivered. All prints are produced by Rob in North Wales and dispatched via Royal Mail with full tracking.</p>
+  </div>
+
+  <!-- Ship banner -->
+  <div class="ship-banner">
+    <div class="ship-banner-icon">🚀</div>
+    <div class="ship-banner-info">
+      <h2 id="bannerShipName">Klingon Bird of Prey</h2>
+      <p>Ordering a physical 3D print of this design</p>
+    </div>
+    <button class="ship-banner-change" onclick="history.back()">← Change ship</button>
+  </div>
+
+  <div id="orderForm">
+    <div class="order-layout">
+
+      <!-- LEFT: steps -->
+      <div class="form-sections" id="steps">
+
+        <!-- STEP 1: PAYMENT METHOD -->
+        <div class="step active open" id="step1">
+          <div class="step-header" onclick="toggleStep(1)">
+            <div class="step-num">1</div>
+            <div class="step-title">Payment Method</div>
+            <div class="step-summary" id="sum1"></div>
+          </div>
+          <div class="step-body">
+            <div class="info-box">
+              Choose how you'd like to pay. Transaction fees are added to your total — what you see is exactly what you pay. Rob receives the full order amount after fees.
+            </div>
+            <div class="option-grid option-grid-2">
+
+              <label class="option-card" onclick="selectPayment('paypal')">
+                <input type="radio" name="payment" value="paypal">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                  <span style="font-size:1.4rem">🅿</span>
+                  <div class="option-card-title">PayPal</div>
+                </div>
+                <div class="option-card-sub">Pay via your PayPal account or card through PayPal</div>
+                <div class="option-card-price" style="color:var(--accent2)">+3.4% + 30p fee</div>
+                <div class="option-card-check"></div>
+              </label>
+
+              <label class="option-card" onclick="selectPayment('stripe')">
+                <input type="radio" name="payment" value="stripe">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                  <span style="font-size:1.4rem">💳</span>
+                  <div class="option-card-title">Card / Google Pay / Apple Pay</div>
+                </div>
+                <div class="option-card-sub">Visa, Mastercard, Amex, Google Pay, Apple Pay via Stripe</div>
+                <div class="option-card-price" style="color:var(--accent2)">+1.5% + 20p fee</div>
+                <div class="option-card-check"></div>
+              </label>
+
+              <label class="option-card" onclick="selectPayment('banktransfer')">
+                <input type="radio" name="payment" value="banktransfer">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                  <span style="font-size:1.4rem">🏦</span>
+                  <div class="option-card-title">Bank Transfer</div>
+                </div>
+                <div class="option-card-sub">UK bank transfer (BACS). Details sent with your quote</div>
+                <div class="option-card-price" style="color:var(--green)">No fees</div>
+                <div class="option-card-check"></div>
+              </label>
+
+              <label class="option-card" onclick="selectPayment('quote')">
+                <input type="radio" name="payment" value="quote">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                  <span style="font-size:1.4rem">📧</span>
+                  <div class="option-card-title">Decide Later</div>
+                </div>
+                <div class="option-card-sub">Get your quote first, then choose payment when you confirm</div>
+                <div class="option-card-price" style="color:var(--dim)">Discuss with Rob</div>
+                <div class="option-card-check"></div>
+              </label>
+
+            </div>
+
+            <!-- Fee preview -->
+            <div id="feePreview" style="display:none;margin-top:4px">
+              <div class="info-box" id="feeBox"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- STEP 2: SIZE -->
+        <div class="step" id="step3">
+          <div class="step-header" onclick="toggleStep(3)">
+            <div class="step-num">2</div>
+            <div class="step-title">Size</div>
+            <div class="step-summary" id="sum3"></div>
+          </div>
+          <div class="step-body">
+            <div class="info-box">Sizes are approximate longest dimension of the finished print.</div>
+            <div class="option-grid option-grid-3">
+              <label class="option-card" onclick="selectSize('small')">
+                <input type="radio" name="size" value="small">
+                <div class="option-card-title">Small</div>
+                <div class="option-card-sub">1 – 12 cm</div>
+                <div class="option-card-price">£15</div>
+                <div class="option-card-check"></div>
+              </label>
+              <label class="option-card" onclick="selectSize('medium')">
+                <input type="radio" name="size" value="medium">
+                <div class="option-card-title">Medium</div>
+                <div class="option-card-sub">13 – 22 cm</div>
+                <div class="option-card-price">£20</div>
+                <div class="option-card-check"></div>
+              </label>
+              <label class="option-card" onclick="selectSize('large')">
+                <input type="radio" name="size" value="large">
+                <div class="option-card-title">Large</div>
+                <div class="option-card-sub">Over 22 cm</div>
+                <div class="option-card-price">Quote</div>
+                <div class="option-card-check"></div>
+              </label>
+            </div>
+            <div class="field-group" id="largeSizeBox" style="display:none">
+              <label class="field-label">Approximate size (cm)</label>
+              <input class="field-input" type="number" id="largeSize" placeholder="e.g. 35" min="23" oninput="calcTotal()">
+              <div class="field-note">A price will be quoted for you before any payment is taken.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: PAINTING -->
+        <div class="step" id="step3">
+          <div class="step-header" onclick="toggleStep(3)">
+            <div class="step-num">3</div>
+            <div class="step-title">Painting</div>
+            <div class="step-summary" id="sum3"></div>
+          </div>
+          <div class="step-body">
+            <div class="info-box">Hand-painted finishes add to production time. Please allow extra time for painted orders.</div>
+            <div class="option-grid option-grid-2">
+              <label class="option-card" onclick="selectPaint('no')">
+                <input type="radio" name="paint" value="no">
+                <div class="option-card-title">Unpainted</div>
+                <div class="option-card-sub">Raw print finish — ready to paint yourself or display as-is</div>
+                <div class="option-card-price">Included</div>
+                <div class="option-card-check"></div>
+              </label>
+              <label class="option-card" onclick="selectPaint('yes')">
+                <input type="radio" name="paint" value="yes">
+                <div class="option-card-title">Painted</div>
+                <div class="option-card-sub" id="paintSub">Hand-painted by Rob — price depends on size</div>
+                <div class="option-card-price" id="paintPrice">—</div>
+                <div class="option-card-check"></div>
+              </label>
+            </div>
+            <div id="paintNote" style="display:none" class="info-box">
+              Painting adds <strong id="paintNotePrice"></strong> to your order. For large/quoted sizes, painting will be included in your quote.
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: STAND -->
+        <div class="step" id="step4">
+          <div class="step-header" onclick="toggleStep(4)">
+            <div class="step-num">4</div>
+            <div class="step-title">Display Stand</div>
+            <div class="step-summary" id="sum4"></div>
+          </div>
+          <div class="step-body">
+            <div id="standUnavail" class="warn-box" style="display:none">
+              <strong>Stands not available for small prints (under 15cm).</strong> Please select a medium or large size to add a stand.
+            </div>
+            <div id="standOptions">
+              <div class="option-grid option-grid-2">
+                <label class="option-card" onclick="selectStand('no')">
+                  <input type="radio" name="stand" value="no">
+                  <div class="option-card-title">No Stand</div>
+                  <div class="option-card-sub">Ship only — no display stand included</div>
+                  <div class="option-card-price">Included</div>
+                  <div class="option-card-check"></div>
+                </label>
+                <label class="option-card" id="standYesCard" onclick="selectStand('yes')">
+                  <input type="radio" name="stand" value="yes">
+                  <div class="option-card-title">Display Stand</div>
+                  <div class="option-card-sub" id="standSub">Custom stand included</div>
+                  <div class="option-card-price" id="standPrice">—</div>
+                  <div class="option-card-check"></div>
+                </label>
+              </div>
+              <!-- Stand extras (large only) -->
+              <div id="standExtras" style="display:none">
+                <div class="divider-label">Custom wooden stand options</div>
+                <div class="warn-box">These are handcrafted custom wooden stands — price will be included in your quote.</div>
+                <label class="checkbox-row" style="margin-bottom:10px">
+                  <input type="checkbox" id="standLight" onchange="calcTotal()">
+                  <span>Add integrated LED lighting <span style="color:var(--gold)">— quoted</span></span>
+                </label>
+                <label class="checkbox-row">
+                  <input type="checkbox" id="standPlaque" onchange="calcTotal()">
+                  <span>Add name plaque <span style="color:var(--gold)">— quoted</span></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: DECALS -->
+        <div class="step" id="step5">
+          <div class="step-header" onclick="toggleStep(5)">
+            <div class="step-num">4</div>
+            <div class="step-title">Registration &amp; Decals</div>
+            <div class="step-summary" id="sum5"></div>
+          </div>
+          <div class="step-body">
+            <div id="decalUnavail" class="warn-box" style="display:none">
+              <strong>Decals not available for prints under 12cm.</strong> Please select a medium or large size to add decals.
+            </div>
+            <div id="decalOptions">
+              <div class="option-grid option-grid-2">
+                <label class="option-card" onclick="selectDecal('no')">
+                  <input type="radio" name="decal" value="no">
+                  <div class="option-card-title">No Decals</div>
+                  <div class="option-card-sub">Plain finish, no markings</div>
+                  <div class="option-card-price">Included</div>
+                  <div class="option-card-check"></div>
+                </label>
+                <label class="option-card" onclick="selectDecal('yes')">
+                  <input type="radio" name="decal" value="yes">
+                  <div class="option-card-title">Registration Decals</div>
+                  <div class="option-card-sub" id="decalSub">Ship name + registration number</div>
+                  <div class="option-card-price" id="decalPrice">—</div>
+                  <div class="option-card-check"></div>
+                </label>
+              </div>
+
+              <div id="decalFields" style="display:none">
+                <div class="divider-label">Decal details</div>
+                <div class="field-group">
+                  <label class="field-label">Registration Number (e.g. NCC-1701)</label>
+                  <input class="field-input" type="text" id="regNum" placeholder="e.g. NCC-1701-D" oninput="calcTotal()">
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Ship Name (e.g. USS Enterprise)</label>
+                  <input class="field-input" type="text" id="shipName" placeholder="e.g. USS Enterprise" oninput="calcTotal()">
+                </div>
+
+                <!-- Extra decals (large/over 22cm only) -->
+                <div id="extraDecals" style="display:none">
+                  <div class="divider-label">Additional decals — £15 each</div>
+                  <div style="display:flex;flex-direction:column;gap:10px">
+                    <label class="checkbox-row">
+                      <input type="checkbox" id="decalEngine1" onchange="calcTotal()">
+                      <span>Engine nacelle #1 decal <span style="color:var(--gold)">+£15</span></span>
+                    </label>
+                    <label class="checkbox-row">
+                      <input type="checkbox" id="decalEngine2" onchange="calcTotal()">
+                      <span>Engine nacelle #2 decal <span style="color:var(--gold)">+£15</span></span>
+                    </label>
+                    <label class="checkbox-row">
+                      <input type="checkbox" id="decalSaucer" onchange="calcTotal()">
+                      <span>Bottom saucer decal <span style="color:var(--gold)">+£15</span></span>
+                    </label>
+                    <label class="checkbox-row">
+                      <input type="checkbox" id="decalHull" onchange="calcTotal()">
+                      <span>Secondary hull decal <span style="color:var(--gold)">+£15</span></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 5: POSTAGE -->
+        <div class="step" id="step6">
+          <div class="step-header" onclick="toggleStep(6)">
+            <div class="step-num">5</div>
+            <div class="step-title">Postage &amp; Delivery</div>
+            <div class="step-summary" id="sum6"></div>
+          </div>
+          <div class="step-body">
+            <div class="divider-label">Location</div>
+            <div class="option-grid option-grid-2" style="margin-bottom:16px">
+              <label class="option-card" onclick="selectPost('uk')">
+                <input type="radio" name="postloc" value="uk">
+                <div class="option-card-title">🇬🇧 United Kingdom</div>
+                <div class="option-card-sub">Any UK address</div>
+                <div class="option-card-price">£4</div>
+                <div class="option-card-check"></div>
+              </label>
+              <label class="option-card" onclick="selectPost('world')">
+                <input type="radio" name="postloc" value="world">
+                <div class="option-card-title">🌍 Rest of World</div>
+                <div class="option-card-sub" id="worldPostSub">International shipping</div>
+                <div class="option-card-price" id="worldPostPrice">From £15</div>
+                <div class="option-card-check"></div>
+              </label>
+            </div>
+
+            <!-- UK recorded -->
+            <div id="ukOptions" style="display:none">
+              <div class="divider-label">UK delivery upgrade</div>
+              <label class="option-card" id="recordedCard" onclick="toggleRecorded()">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div>
+                    <div class="option-card-title">Recorded / Tracked</div>
+                    <div class="option-card-sub">Includes tracking number + proof of delivery signature</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div class="option-card-price">+£10</div>
+                    <div class="option-card-check" id="recordedCheck"></div>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <!-- World options -->
+            <div id="worldOptions" style="display:none">
+              <div class="info-box">
+                <strong>International shipping:</strong> Small/medium prints from £15. Add £5 per additional ship in the same order.
+                Large prints or orders with wooden stands will be quoted individually due to weight and packaging requirements.
+                All international orders are sent via Royal Mail International Tracked.
+              </div>
+              <div class="field-group">
+                <label class="field-label">Country</label>
+                <input class="field-input" id="country" type="text" placeholder="e.g. United States, Germany, Australia…">
+              </div>
+            </div>
+
+            <div class="field-group" style="margin-top:16px">
+              <label class="field-label">Delivery address</label>
+              <textarea class="field-input" id="address" placeholder="Full name&#10;Street address&#10;City, postcode&#10;Country" rows="4"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 6: AGREEMENT -->
+        <div class="step" id="step7">
+          <div class="step-header" onclick="toggleStep(7)">
+            <div class="step-num">7</div>
+            <div class="step-title">Order Agreement</div>
+            <div class="step-summary" id="sum7"></div>
+          </div>
+          <div class="step-body">
+            <div class="agreement-box">
+              <div class="agreement-text">
+                <strong>Please read and agree before placing your order:</strong><br><br>
+                All prints from Strange New Models are <strong>bespoke, made-to-order items</strong> and production times vary.
+                A standard unpainted print may be completed quickly, but this depends on Rob's current workload and print queue.
+                <br><br>
+                <strong>Hand-painted orders</strong> require additional time for preparation, painting, and drying.
+                Orders with <strong>custom wooden stands</strong> and <strong>decals</strong> take the longest and are completed to the highest quality standard.
+                <br><br>
+                <strong>Packaging &amp; postage:</strong> All items are carefully packed for transit. However, buyers should be aware that postal damage can occasionally occur. Every order is <strong>insured</strong> and sent with a <strong>Royal Mail tracking number</strong> so you can monitor your shipment and make a claim if required.
+                <br><br>
+                Once an order is placed and confirmed by Rob, a lead time estimate will be provided. <strong>No payment is taken until the order is confirmed and quoted.</strong>
+              </div>
+              <label class="checkbox-row" id="agreeCheck" onchange="calcTotal()">
+                <input type="checkbox" id="agreed">
+                <span>I have read and understood the above. I agree to the bespoke order terms and understand timescales may vary.</span>
+              </label>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Your Name</label>
+              <input class="field-input" type="text" id="custName" placeholder="Your full name">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Email Address</label>
+              <input class="field-input" type="email" id="custEmail" placeholder="your@email.com">
+              <div class="field-note">Your quote, order confirmation and tracking number will be sent here.</div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Additional notes (optional)</label>
+              <textarea class="field-input" id="custNotes" placeholder="Any special requests, colour preferences, reference images link, etc."></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /steps -->
+
+      <!-- RIGHT: summary -->
+      <div class="summary-panel">
+        <div class="summary-title">Order Summary</div>
+        <div class="summary-ship" id="sumShipName">Klingon Bird of Prey</div>
+
+        <div class="progress-steps" id="progressSteps">
+          <div class="progress-step" id="ps1"></div>
+          <div class="progress-step" id="ps3"></div>
+          <div class="progress-step" id="ps4"></div>
+          <div class="progress-step" id="ps5"></div>
+          <div class="progress-step" id="ps6"></div>
+          <div class="progress-step" id="ps7"></div>
+        </div>
+
+        <div class="summary-lines" id="summaryLines">
+          <div class="summary-line"><span>Print size</span><span id="sl-size">—</span></div>
+          <div class="summary-line"><span>Painting</span><span id="sl-paint">—</span></div>
+          <div class="summary-line"><span>Stand</span><span id="sl-stand">—</span></div>
+          <div class="summary-line"><span>Decals</span><span id="sl-decal">—</span></div>
+          <div class="summary-line"><span>Postage</span><span id="sl-post">—</span></div>
+        </div>
+
+        <div class="summary-total" id="summaryTotal">
+          <span>Estimated Total</span>
+          <span id="totalDisplay">—</span>
+        </div>
+
+        <p class="summary-note" id="summaryNote">Select your options above. No payment is taken now — this sends an enquiry to Rob who will confirm your order and quote.</p>
+
+        <button class="submit-btn" id="submitBtn" onclick="submitOrder()" disabled>
+          🚀 Send Order Enquiry
+        </button>
+
+        <div style="margin-top:12px;font-size:0.72rem;color:var(--dim);text-align:center;line-height:1.5">
+          Sent to robbybelboah@msn.com<br>
+          Rob will reply within 48 hours
+        </div>
+      </div>
+
+    </div><!-- /order-layout -->
+  </div><!-- /orderForm -->
+
+  <!-- SUCCESS -->
+  <div class="success-panel" id="successPanel">
+    <div class="success-icon">✅</div>
+    <h2>Enquiry Sent!</h2>
+    <p>Your print order enquiry has been sent to Rob. He'll review your options, confirm availability and send you a full quote within <strong>48 hours</strong> to <span id="successEmail" style="color:var(--accent)"></span>.</p>
+    <p style="margin-top:12px">No payment is taken until you confirm the quote.</p>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:28px;flex-wrap:wrap">
+      <a href="catalogue.html" class="btn btn-outline">← Back to Catalogue</a>
+      <a href="https://www.facebook.com/groups/1080344266015477" target="_blank" class="btn" style="background:var(--gold);color:#000">Join Facebook Group</a>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<a href="https://m.me/rob.cooter.9" target="_blank" class="messenger-bubble" title="Message Rob on Facebook">
+  <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 4.975 0 11.111c0 3.498 1.744 6.614 4.469 8.652V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.975 12-11.111C24 4.975 18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26L10.732 8l3.131 3.259L19.752 8l-6.561 6.963z"/></svg>
+</a>
+<div class="toast" id="toast"></div>
+
+<script>
+
+// ── PAYMENT ───────────────────────────────────────────────────
+const FEE_RATES = {
+  paypal:      { pct: 0.034, fixed: 0.30, label: 'PayPal', note: '3.4% + 30p' },
+  stripe:      { pct: 0.015, fixed: 0.20, label: 'Card / Google Pay / Apple Pay', note: '1.5% + 20p' },
+  banktransfer:{ pct: 0,     fixed: 0,    label: 'Bank Transfer', note: 'No fees' },
+  quote:       { pct: 0,     fixed: 0,    label: 'Decide Later', note: 'No fees' },
+};
+
+function calcFee(subtotal, method) {
+  if (!method || !FEE_RATES[method]) return 0;
+  const r = FEE_RATES[method];
+  return subtotal * r.pct + r.fixed;
+}
+
+function selectPayment(val) {
+  state.payment = val;
+  document.querySelectorAll('[name=payment]').forEach(r => {
+    r.closest('.option-card').classList.toggle('selected', r.value === val);
+  });
+  const rate = FEE_RATES[val];
+  const feeBox = document.getElementById('feeBox');
+  const feePreview = document.getElementById('feePreview');
+  if (val === 'banktransfer' || val === 'quote') {
+    feeBox.innerHTML = `<strong>${rate.label}:</strong> No transaction fees added. Rob will send bank details with your quote.`;
+    feePreview.style.display = 'block';
+  } else {
+    feeBox.innerHTML = `<strong>${rate.label}:</strong> A ${rate.note} processing fee will be added to your final total. This is charged by ${val==='paypal'?'PayPal':'Stripe'} and goes directly to them — not Rob.`;
+    feePreview.style.display = 'block';
+  }
+  document.getElementById('sum1').textContent = rate.label;
+  updateProgressStep(1);
+  calcTotal();
+  openNext(2);
+}
+
+// ── STATE ─────────────────────────────────────────────────────
+const state = {
+  shipName: '', payment: null, size: null, paint: null, stand: null,
+  decal: null, post: null, recorded: false,
+  regNum:'', shipNameDecal:'', country:'', address:'',
+  custName:'', custEmail:'', custNotes:'', agreed: false,
+  largeSize: null,
+  extraDecals: { engine1:false, engine2:false, saucer:false, hull:false },
+  standLight: false, standPlaque: false,
+};
+
+// ── INIT ──────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(location.search);
+  const shipParam = params.get('ship') || 'Klingon Bird of Prey';
+  state.shipName = decodeURIComponent(shipParam);
+  document.getElementById('bannerShipName').textContent = state.shipName;
+  document.getElementById('sumShipName').textContent    = state.shipName;
+  document.getElementById('breadShip').textContent      = 'Order: ' + state.shipName;
+  document.title = 'Order Print: ' + state.shipName + ' — Strange New Models';
+});
+
+// ── STEP ACCORDION ────────────────────────────────────────────
+function toggleStep(n) {
+  const step = document.getElementById('step'+n);
+  const isOpen = step.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('open'));
+  if (!isOpen) step.classList.add('open');
+}
+
+function openNext(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('open'));
+  const next = document.getElementById('step'+n);
+  if (next) {
+    next.classList.add('active','open');
+    next.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+}
+
+// ── SIZE ──────────────────────────────────────────────────────
+function selectSize(val) {
+  state.size = val;
+  document.querySelectorAll('[name=size]').forEach(r => {
+    r.closest('.option-card').classList.toggle('selected', r.value === val);
+  });
+  document.getElementById('largeSizeBox').style.display = val === 'large' ? 'block' : 'none';
+
+  // Update paint/stand/decal availability
+  updatePaintPrices();
+  updateStandAvailability();
+  updateDecalAvailability();
+  updateProgressStep(1);
+  document.getElementById('sum1').textContent = val === 'small' ? '1–12cm · £15' : val === 'medium' ? '13–22cm · £20' : 'Over 22cm · Quote';
+  document.getElementById('sl-size').textContent = val === 'small' ? '£15' : val === 'medium' ? '£20' : 'Quoted';
+  calcTotal();
+  openNext(3);
+}
+
+// ── PAINT ─────────────────────────────────────────────────────
+function updatePaintPrices() {
+  const sz = state.size;
+  const sub  = document.getElementById('paintSub');
+  const prEl = document.getElementById('paintPrice');
+  if (!sz) return;
+  if (sz === 'small')  { sub.textContent='Hand-painted · small size'; prEl.textContent='+£15'; }
+  if (sz === 'medium') { sub.textContent='Hand-painted · medium size'; prEl.textContent='+£20'; }
+  if (sz === 'large')  { sub.textContent='Hand-painted · included in quote'; prEl.textContent='Quoted'; }
+}
+
+function selectPaint(val) {
+  state.paint = val;
+  document.querySelectorAll('[name=paint]').forEach(r => {
+    r.closest('.option-card').classList.toggle('selected', r.value === val);
+  });
+  const noteEl = document.getElementById('paintNote');
+  const notePr = document.getElementById('paintNotePrice');
+  if (val === 'yes') {
+    noteEl.style.display = 'block';
+    const sz = state.size;
+    notePr.textContent = sz==='small'?'£15':sz==='medium'?'£20':'(quoted)';
+  } else {
+    noteEl.style.display = 'none';
+  }
+  const sum = val==='yes'? (state.size==='small'?'+£15':state.size==='medium'?'+£20':'Quoted') : 'None';
+  document.getElementById('sum2').textContent = sum;
+  document.getElementById('sl-paint').textContent = val==='no'?'None':sum;
+  updateProgressStep(3);
+  calcTotal();
+  openNext(4);
+}
+
+// ── STAND ─────────────────────────────────────────────────────
+function updateStandAvailability() {
+  const sz = state.size;
+  const unavail = document.getElementById('standUnavail');
+  const opts    = document.getElementById('standOptions');
+  const standsub = document.getElementById('standSub');
+  const standpr  = document.getElementById('standPrice');
+  const extras   = document.getElementById('standExtras');
+
+  if (sz === 'small') {
+    unavail.style.display = 'block';
+    opts.style.display    = 'none';
+    state.stand = 'no';
+  } else {
+    unavail.style.display = 'none';
+    opts.style.display    = 'block';
+    if (sz === 'medium') {
+      standsub.textContent = '3D printed display stand · 15–22cm';
+      standpr.textContent  = '+£15';
+      extras.style.display = 'none';
+    } else {
+      standsub.textContent = 'Custom handcrafted wooden stand';
+      standpr.textContent  = 'Quoted';
+      extras.style.display = state.stand === 'yes' ? 'block' : 'none';
+    }
+  }
+}
+
+function selectStand(val) {
+  state.stand = val;
+  document.querySelectorAll('[name=stand]').forEach(r => {
+    r.closest('.option-card').classList.toggle('selected', r.value === val);
+  });
+  if (state.size === 'large') {
+    document.getElementById('standExtras').style.display = val === 'yes' ? 'block' : 'none';
+  }
+  const sz = state.size;
+  const sum = val==='no'?'None':sz==='medium'?'+£15':'Quoted';
+  document.getElementById('sum3').textContent = sum;
+  document.getElementById('sl-stand').textContent = sum;
+  updateProgressStep(4);
+  calcTotal();
+  openNext(5);
+}
+
+// ── DECALS ────────────────────────────────────────────────────
+function updateDecalAvailability() {
+  const sz = state.size;
+  const unavail = document.getElementById('decalUnavail');
+  const opts    = document.getElementById('decalOptions');
+  const sub     = document.getElementById('decalSub');
+  const pr      = document.getElementById('decalPrice');
+  const extra   = document.getElementById('extraDecals');
+
+  if (sz === 'small') {
+    unavail.style.display = 'block';
+    opts.style.display    = 'none';
+    state.decal = 'no';
+  } else {
+    unavail.style.display = 'none';
+    opts.style.display    = 'block';
+    if (sz === 'medium') {
+      sub.textContent  = 'Ship name + registration number';
+      pr.textContent   = '+£10';
+      extra.style.display = 'none';
+    } else {
+      sub.textContent  = 'Ship name + registration + extra decal options';
+      pr.textContent   = '+£15';
+      extra.style.display = state.decal === 'yes' ? 'block' : 'none';
+    }
+  }
+}
+
+function selectDecal(val) {
+  state.decal = val;
+  document.querySelectorAll('[name=decal]').forEach(r => {
+    r.closest('.option-card').classList.toggle('selected', r.value === val);
+  });
+  document.getElementById('decalFields').style.display = val==='yes'?'block':'none';
+  if (state.size === 'large') {
+    document.getElementById('extraDecals').style.display = val==='yes'?'block':'none';
+  }
+  const sz = state.size;
+  const basePrice = sz==='medium'?'+£10':'+£15';
+  const sum = val==='no'?'None':basePrice;
+  document.getElementById('sum4').textContent = sum;
+  document.getElementById('sl-decal').textContent = sum;
+  updateProgressStep(5);
+  calcTotal();
+  openNext(6);
+}
+
+// ── POSTAGE ───────────────────────────────────────────────────
+function selectPost(val) {
+  state.post = val;
+  document.querySelectorAll('[name=postloc]').forEach(r => {
+    r.closest('.option-card').classList.toggle('selected', r.value === val);
+  });
+  document.getElementById('ukOptions').style.display    = val==='uk'?'block':'none';
+  document.getElementById('worldOptions').style.display = val==='world'?'block':'none';
+  if (val==='world') {
+    const sz = state.size;
+    const sub = document.getElementById('worldPostSub');
+    const pr  = document.getElementById('worldPostPrice');
+    if (sz==='large') { sub.textContent='Large item — price in quote'; pr.textContent='Quoted'; }
+    else { sub.textContent='Standard international tracked'; pr.textContent='From £15'; }
+  }
+  const sum = val==='uk'?(state.recorded?'+£14':'+£4'):state.size==='large'?'Quoted':'From £15';
+  document.getElementById('sum5').textContent = sum;
+  document.getElementById('sl-post').textContent = sum;
+  updateProgressStep(6);
+  calcTotal();
+  openNext(7);
+}
+
+let recordedSelected = false;
+function toggleRecorded() {
+  recordedSelected = !recordedSelected;
+  state.recorded = recordedSelected;
+  document.getElementById('recordedCard').classList.toggle('selected', recordedSelected);
+  document.getElementById('recordedCheck').classList.toggle('selected', recordedSelected);
+  document.getElementById('sum5').textContent = 'UK ' + (recordedSelected?'+£14':'+£4');
+  document.getElementById('sl-post').textContent = recordedSelected?'+£14':'+£4';
+  calcTotal();
+}
+
+// ── TOTAL CALCULATOR ──────────────────────────────────────────
+function calcTotal() {
+  let total = 0;
+  let isQuote = false;
+  const sz = state.size;
+
+  // Size
+  if (sz==='small')  total += 15;
+  else if (sz==='medium') total += 20;
+  else if (sz==='large') isQuote = true;
+
+  // Paint
+  if (state.paint==='yes') {
+    if (sz==='small')  total += 15;
+    else if (sz==='medium') total += 20;
+    else isQuote = true;
+  }
+
+  // Stand
+  if (state.stand==='yes') {
+    if (sz==='medium') total += 15;
+    else isQuote = true;
+  }
+
+  // Decals base
+  if (state.decal==='yes') {
+    if (sz==='medium') total += 10;
+    else if (sz==='large') total += 15;
+    // Extra decals (large only)
+    ['decalEngine1','decalEngine2','decalSaucer','decalHull'].forEach(id => {
+      if (document.getElementById(id)?.checked) total += 15;
+    });
+  }
+
+  // Post
+  if (state.post==='uk') total += state.recorded ? 14 : 4;
+  else if (state.post==='world') {
+    if (sz==='large') isQuote = true;
+    else total += 15;
+  }
+
+  const totalEl = document.getElementById('totalDisplay');
+  const sumEl   = document.getElementById('summaryTotal');
+  const noteEl  = document.getElementById('summaryNote');
+
+  // Add payment fee
+  let feeDisplay = '';
+  if (!isQuote && total > 0 && state.payment && state.payment !== 'banktransfer' && state.payment !== 'quote') {
+    const fee = calcFee(total, state.payment);
+    const grandTotal = (total + fee).toFixed(2);
+    const feeRate = FEE_RATES[state.payment];
+    feeDisplay = ` <span style="font-size:0.65rem;color:var(--accent2);display:block;margin-top:4px">incl. ${feeRate.note} fee (£${fee.toFixed(2)})</span>`;
+    // Update summary lines with fee row
+    document.getElementById('sl-post').closest('.summary-lines').querySelectorAll('.fee-line').forEach(e=>e.remove());
+    const feeLine = document.createElement('div');
+    feeLine.className = 'summary-line fee-line';
+    feeLine.innerHTML = `<span style="color:var(--accent2)">${feeRate.label} fee</span><span style="color:var(--accent2)">+£${fee.toFixed(2)}</span>`;
+    document.getElementById('sl-post').closest('.summary-line').after(feeLine);
+    totalEl.innerHTML = '£'+grandTotal+feeDisplay;
+    sumEl.classList.remove('quote');
+    noteEl.textContent = `Total includes £${fee.toFixed(2)} ${feeRate.label} processing fee. No payment taken now — this sends an enquiry to Rob.`;
+  } else if (isQuote) {
+    totalEl.textContent = 'To be quoted';
+    sumEl.classList.add('quote');
+    noteEl.textContent = 'Some options require a custom quote. Rob will confirm the full price before any payment is taken.';
+    document.querySelectorAll('.fee-line').forEach(e=>e.remove());
+  } else if (total > 0) {
+    totalEl.textContent = '£'+total.toFixed(2);
+    sumEl.classList.remove('quote');
+    noteEl.textContent = 'No transaction fees — bank transfer or payment method to be confirmed with Rob.';
+    document.querySelectorAll('.fee-line').forEach(e=>e.remove());
+  } else {
+    totalEl.textContent = '—';
+    document.querySelectorAll('.fee-line').forEach(e=>e.remove());
+  }
+
+  // Enable submit if agreed + basic info
+  const agreed = document.getElementById('agreed')?.checked;
+  document.getElementById('submitBtn').disabled = !(state.payment && state.size && state.post && agreed);
+
+  // Progress
+  if (agreed) updateProgressStep(7);
+}
+
+function updateProgressStep(n) {
+  document.getElementById('ps'+n).classList.add('done');
+  if (n < 6) document.getElementById('step'+n).classList.add('complete');
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────
+function submitOrder() {
+  const name  = document.getElementById('custName').value.trim();
+  const email = document.getElementById('custEmail').value.trim();
+  if (!name || !email) { showToast('Please enter your name and email address'); return; }
+
+  // Build summary for email
+  const sz       = state.size==='small'?'1–12cm (£15)':state.size==='medium'?'13–22cm (£20)':'Over 22cm ('+document.getElementById('largeSize').value+'cm)';
+  const paint    = state.paint==='yes'?'Yes':'No';
+  const stand    = state.stand==='yes'?'Yes':'No';
+  const decal    = state.decal==='yes'?'Yes — Reg: '+document.getElementById('regNum').value+' / Name: '+document.getElementById('shipName').value:'No';
+  const post     = state.post==='uk'?'UK'+(state.recorded?' (Recorded)':''):document.getElementById('country').value||'International';
+  const address  = document.getElementById('address').value;
+  const notes    = document.getElementById('custNotes').value;
+
+  // TODO: POST to Netlify function / EmailJS to send to robbybelboah@msn.com
+  // For now show success
+  document.getElementById('successEmail').textContent = email;
+  document.getElementById('orderForm').style.display    = 'none';
+  document.getElementById('successPanel').classList.add('show');
+  window.scrollTo({top:0, behavior:'smooth'});
+  console.log('Order enquiry:', { ship:state.shipName, payment:FEE_RATES[state.payment]?.label, name, email, sz, paint, stand, decal, post, address, notes });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

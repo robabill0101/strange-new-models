@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strange New Models — 3D Print Files for Star Trek Fans</title>
+<meta name="description" content="Premium 3D printable Star Trek ship models. Federation, Klingon, Romulan and more. Download STL files instantly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #04080f;
+  --bg2:      #070d18;
+  --panel:    #0a1220;
+  --border:   #112240;
+  --border2:  #1a3a6a;
+  --accent:   #00b8ff;
+  --accent2:  #ff6b35;
+  --gold:     #ffd700;
+  --green:    #00ff88;
+  --text:     #c8dff5;
+  --dim:      #4a6a90;
+  --dim2:     #2a4a70;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 400;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── STAR FIELD ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 25%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 80%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 45%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 33% 90%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 78% 8%,  rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(2px 2px at 50% 50%, rgba(0,184,255,0.15) 0%, transparent 60%),
+    radial-gradient(2px 2px at 20% 70%, rgba(0,100,200,0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(4, 8, 15, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 20px rgba(0,184,255,0.5);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nav-logo span { color: var(--text); font-weight: 400; }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--dim);
+  text-decoration: none;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 0.2s;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
+  font-size: 0.72rem;
+}
+.nav-links a:hover { color: var(--accent); }
+.nav-links a.active { color: var(--accent); }
+
+.nav-actions { display: flex; gap: 12px; align-items: center; }
+
+.btn {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { background: #33ccff; box-shadow: 0 0 24px rgba(0,184,255,0.4); }
+.btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.btn-outline:hover { background: rgba(0,184,255,0.1); }
+.btn-gold { background: var(--gold); color: #000; }
+.btn-gold:hover { background: #ffe033; box-shadow: 0 0 24px rgba(255,215,0,0.4); }
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 80px 40px 40px;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 50%, rgba(0,60,140,0.25) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 50%, rgba(0,184,255,0.08) 0%, transparent 50%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 900px;
+}
+
+.hero-badge {
+  display: inline-block;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  border: 1px solid var(--border2);
+  padding: 6px 16px;
+  border-radius: 20px;
+  margin-bottom: 28px;
+  text-transform: uppercase;
+  background: rgba(0,184,255,0.05);
+}
+
+.hero h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  margin-bottom: 24px;
+  color: #fff;
+}
+
+.hero h1 .accent { color: var(--accent); }
+.hero h1 .line2 { display: block; font-size: 0.6em; color: var(--dim); font-weight: 400; letter-spacing: 0.15em; margin-top: 8px; }
+
+.hero p {
+  font-size: 1.1rem;
+  color: var(--dim);
+  max-width: 600px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 60px; }
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display: flex;
+  gap: 60px;
+  justify-content: center;
+  padding: 24px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.stat { text-align: center; }
+.stat-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--accent);
+  display: block;
+}
+.stat-label { font-size: 0.75rem; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* ── SECTIONS ── */
+section { position: relative; z-index: 1; padding: 80px 40px; }
+.section-header { text-align: center; margin-bottom: 48px; }
+.section-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: block;
+}
+.section-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+}
+.section-sub { color: var(--dim); font-size: 0.95rem; max-width: 500px; margin: 0 auto; }
+
+/* ── CATEGORY GRID ── */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.cat-card {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.25s;
+  aspect-ratio: 4/3;
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+}
+.cat-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0,184,255,0.15);
+}
+.cat-card-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--panel) 0%, #0d1e38 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  opacity: 0.6;
+}
+.cat-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(4,8,15,0.95) 0%, transparent 60%);
+}
+.cat-card-info {
+  position: relative;
+  padding: 16px;
+  width: 100%;
+}
+.cat-card-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.06em;
+  display: block;
+}
+.cat-card-count {
+  font-size: 0.72rem;
+  color: var(--accent);
+  margin-top: 3px;
+  display: block;
+}
+.cat-card-arrow {
+  position: absolute;
+  top: 12px; right: 12px;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 1.1rem;
+}
+.cat-card:hover .cat-card-arrow { opacity: 1; }
+
+/* ── FEATURED SHIPS ── */
+.ships-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.ship-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.25s;
+  cursor: pointer;
+}
+.ship-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0,184,255,0.12);
+}
+.ship-card-img {
+  aspect-ratio: 16/9;
+  background: #060e1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dim2);
+  font-size: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.ship-card-img canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ship-card-body { padding: 14px 16px; }
+.ship-card-faction {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.ship-card-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.ship-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ship-card-price {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+.ship-card-likes {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--dim);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.ship-card-likes:hover { color: #ff4d6d; }
+.ship-card-likes.liked { color: #ff4d6d; }
+
+/* ── PATREON SECTION ── */
+.patreon-section {
+  background: linear-gradient(135deg, #0a0612 0%, #0d0a1e 100%);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.patreon-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+.patreon-text h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+}
+.patreon-text p { color: var(--dim); line-height: 1.7; margin-bottom: 24px; }
+.patreon-posts { display: flex; flex-direction: column; gap: 12px; }
+.patreon-post {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 14px 16px;
+  transition: border-color 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+.patreon-post:hover { border-color: #ff424d; }
+.patreon-post-title { color: #fff; font-size: 0.9rem; font-weight: 500; margin-bottom: 4px; }
+.patreon-post-meta { color: var(--dim); font-size: 0.75rem; }
+.patreon-logo { color: #ff424d; font-size: 1.1rem; margin-right: 6px; }
+
+/* ── SOCIAL STRIP ── */
+.social-strip {
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  padding: 32px 40px;
+}
+.social-strip-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.social-strip-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  color: var(--dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.social-links { display: flex; gap: 12px; flex-wrap: wrap; }
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  text-decoration: none;
+  color: var(--dim);
+  font-size: 0.78rem;
+  transition: all 0.2s;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.08em;
+}
+.social-link:hover { border-color: var(--accent); color: var(--accent); }
+.social-link svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+
+/* ── FOOTER ── */
+footer {
+  background: #02050a;
+  border-top: 1px solid var(--border);
+  padding: 48px 40px 24px;
+}
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+.footer-brand p { color: var(--dim); font-size: 0.85rem; line-height: 1.7; margin-top: 12px; max-width: 280px; }
+.footer-col h4 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.footer-col ul a { color: var(--dim); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+.footer-col ul a:hover { color: var(--text); }
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer-bottom p { color: var(--dim); font-size: 0.75rem; }
+
+/* ── MESSENGER BUBBLE ── */
+.messenger-bubble {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0084ff, #00c6ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 999;
+  box-shadow: 0 4px 20px rgba(0,132,255,0.5);
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+}
+.messenger-bubble:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 28px rgba(0,132,255,0.7);
+}
+.messenger-bubble svg { width: 28px; height: 28px; fill: white; }
+
+/* ── MODAL (auth) ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 36px;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+}
+.modal h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.modal-close {
+  position: absolute;
+  top: 14px; right: 16px;
+  background: none;
+  border: none;
+  color: var(--dim);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.modal-close:hover { color: #fff; }
+.form-field { margin-bottom: 16px; }
+.form-field label { display: block; color: var(--dim); font-size: 0.75rem; letter-spacing: 0.1em; margin-bottom: 6px; text-transform: uppercase; }
+.form-field input {
+  width: 100%;
+  background: #060e1a;
+  border: 1px solid var(--border);
+  color: #fff;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  border-radius: 2px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-field input:focus { border-color: var(--accent); }
+.form-divider {
+  text-align: center;
+  color: var(--dim);
+  font-size: 0.8rem;
+  margin: 16px 0;
+  position: relative;
+}
+.form-divider::before, .form-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: var(--border);
+}
+.form-divider::before { left: 0; }
+.form-divider::after { right: 0; }
+.btn-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #fff;
+  color: #333;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 10px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-google:hover { background: #f0f0f0; }
+.modal-switch { text-align: center; margin-top: 16px; color: var(--dim); font-size: 0.8rem; }
+.modal-switch a { color: var(--accent); cursor: pointer; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  right: 28px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 12px 20px;
+  color: var(--accent);
+  font-size: 0.85rem;
+  z-index: 3000;
+  transform: translateX(120%);
+  transition: transform 0.3s;
+  max-width: 300px;
+}
+.toast.show { transform: translateX(0); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.6s ease both; }
+.fade-up-1 { animation-delay: 0.1s; }
+.fade-up-2 { animation-delay: 0.2s; }
+.fade-up-3 { animation-delay: 0.3s; }
+.fade-up-4 { animation-delay: 0.4s; }
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0,184,255,0.3); }
+  50%       { box-shadow: 0 0 40px rgba(0,184,255,0.6); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  section { padding: 60px 20px; }
+  .hero { padding: 80px 20px 40px; }
+  .patreon-inner { grid-template-columns: 1fr; gap: 32px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+  .social-strip-inner { flex-direction: column; align-items: flex-start; }
+  .stats-bar { gap: 32px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    ✦ Strange<span>New</span>Models
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="catalogue.html">Catalogue</a></li>
+    <li><a href="index.html#patreon">News</a></li>
+    <li><a href="videos.html">Videos</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="catalogue.html" class="btn btn-outline" style="display:none" id="adminLink">⚙ Admin</a>
+    <button class="btn btn-outline" id="loginBtn" onclick="showModal('login')">Log In</button>
+    <a href="catalogue.html" class="btn btn-primary">Browse Ships</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge fade-up">✦ Premium 3D Print Files ✦</div>
+    <h1 class="fade-up fade-up-1">
+      <span class="accent">Strange</span> New Models
+      <span class="line2">Fan-designed Star Trek ships for 3D printing</span>
+    </h1>
+    <p class="fade-up fade-up-2">
+      Hundreds of detailed STL files — Federation, Klingon, Romulan and beyond.
+      Designed by Rob, printed and tested on FDM and resin printers.
+    </p>
+    <div class="hero-actions fade-up fade-up-3">
+      <a href="catalogue.html" class="btn btn-primary" style="font-size:0.85rem;padding:12px 28px">🚀 Browse Catalogue</a>
+      <a href="https://patreon.com/floortrek" target="_blank" class="btn btn-gold" style="font-size:0.85rem;padding:12px 28px">❤ Support on Patreon</a>
+    </div>
+    <div class="stats-bar fade-up fade-up-4">
+      <div class="stat"><span class="stat-num" id="statShips">500+</span><span class="stat-label">Ships</span></div>
+      <div class="stat"><span class="stat-num">8</span><span class="stat-label">Factions</span></div>
+      <div class="stat"><span class="stat-num">20K</span><span class="stat-label">Facebook Members</span></div>
+      <div class="stat"><span class="stat-num">£12</span><span class="stat-label">From</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section style="background: var(--bg2);">
+  <div class="section-header">
+    <span class="section-label">Browse by Faction</span>
+    <h2 class="section-title">The Catalogue</h2>
+    <p class="section-sub">Choose your allegiance</p>
+  </div>
+  <div class="cat-grid">
+    <a href="catalogue.html?cat=Federation" class="cat-card">
+      <div class="cat-card-bg">🖖</div>
+      <div class="cat-card-overlay"></div>
+      <div class="cat-card-info">
+        <span class="cat-card-name">Federation</span>
+        <span class="cat-card-count">Loading…</span>
+      </div>
+      <span class="cat-card-arrow">→</span>
+    </a>
+    <a href="catalogue.html?cat=Klingons" class="cat-card">
+      <div class="cat-card-bg">⚔</div>
+      <div class="cat-card-overlay"></div>
+      <div class="cat-card-info">
+        <span class="cat-card-name">Klingons</span>
+        <span class="cat-card-count">132 ships</span>
+      </div>
+      <span class="cat-card-arrow">→</span>
+    </a>
+    <a href="catalogue.html?cat=Romulans" class="cat-card">
+      <div class="cat-card-bg">🦅</div>
+      <div class="cat-card-overlay"></div>
+      <div class="cat-card-info">
+        <span class="cat-card-name">Romulans</span>
+        <span class="cat-card-count">Loading…</span>
+      </div>
+      <span class="cat-card-arrow">→</span>
+    </a>
+    <a href="catalogue.html?cat=Borg" class="cat-card">
+      <div class="cat-card-bg">🔲</div>
+      <div class="cat-card-overlay"></div>
+      <div class="cat-card-info">
+        <span class="cat-card-name">Borg</span>
+        <span class="cat-card-count">Loading…</span>
+      </div>
+      <span class="cat-card-arrow">→</span>
+    </a>
+    <a href="catalogue.html?cat=Stations" class="cat-card">
+      <div class="cat-card-bg">🛸</div>
+      <div class="cat-card-overlay"></div>
+      <div class="cat-card-info">
+        <span class="cat-card-name">Stations</span>
+        <span class="cat-card-count">Loading…</span>
+      </div>
+      <span class="cat-card-arrow">→</span>
+    </a>
+    <a href="catalogue.html?cat=Star+Wars" class="cat-card">
+      <div class="cat-card-bg">⭐</div>
+      <div class="cat-card-overlay"></div>
+      <div class="cat-card-info">
+        <span class="cat-card-name">Star Wars</span>
+        <span class="cat-card-count">Loading…</span>
+      </div>
+      <span class="cat-card-arrow">→</span>
+    </a>
+    <a href="catalogue.html?cat=Other+Aliens" class="cat-card">
+      <div class="cat-card-bg">👾</div>
+      <div class="cat-card-overlay"></div>
+      <div class="cat-card-info">
+        <span class="cat-card-name">Other Aliens</span>
+        <span class="cat-card-count">Loading…</span>
+      </div>
+      <span class="cat-card-arrow">→</span>
+    </a>
+    <a href="catalogue.html" class="cat-card" style="border-style:dashed">
+      <div class="cat-card-bg" style="font-size:2rem">+</div>
+      <div class="cat-card-overlay"></div>
+      <div class="cat-card-info">
+        <span class="cat-card-name">View All</span>
+        <span class="cat-card-count">All factions →</span>
+      </div>
+      <span class="cat-card-arrow">→</span>
+    </a>
+  </div>
+</section>
+
+<!-- PATREON / NEWS -->
+<section class="patreon-section" id="patreon">
+  <div class="patreon-inner">
+    <div class="patreon-text">
+      <span class="section-label">Floor Trek</span>
+      <h2>Latest from Patreon</h2>
+      <p>Follow along as new ships are designed, tested and released. Patreon members get early access to new files, work-in-progress updates and exclusive designs.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a href="https://patreon.com/floortrek" target="_blank" class="btn btn-gold">❤ Join Patreon</a>
+        <a href="https://www.facebook.com/groups/1080344266015477" target="_blank" class="btn btn-outline">👥 Facebook Group</a>
+      </div>
+    </div>
+    <div class="patreon-posts" id="patreonFeed">
+      <a href="https://patreon.com/floortrek" target="_blank" class="patreon-post">
+        <div class="patreon-post-title"><span class="patreon-logo">❤</span>New Klingon D-22 Bird of Prey released</div>
+        <div class="patreon-post-meta">Posted on Patreon · Floor Trek</div>
+      </a>
+      <a href="https://patreon.com/floortrek" target="_blank" class="patreon-post">
+        <div class="patreon-post-title"><span class="patreon-logo">❤</span>Romulan Warbird update — improved nacelles</div>
+        <div class="patreon-post-meta">Posted on Patreon · Floor Trek</div>
+      </a>
+      <a href="https://patreon.com/floortrek" target="_blank" class="patreon-post">
+        <div class="patreon-post-title"><span class="patreon-logo">❤</span>Federation KIT pack now available</div>
+        <div class="patreon-post-meta">Posted on Patreon · Floor Trek</div>
+      </a>
+      <a href="https://patreon.com/floortrek" target="_blank" class="patreon-post">
+        <div class="patreon-post-title"><span class="patreon-logo">❤</span>WIP: Cardassian heavy cruiser design</div>
+        <div class="patreon-post-meta">Posted on Patreon · Floor Trek</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL STRIP -->
+<div class="social-strip">
+  <div class="social-strip-inner">
+    <span class="social-strip-label">Find us on</span>
+    <div class="social-links">
+      <a href="https://www.facebook.com/rob.cooter.9" target="_blank" class="social-link">
+        <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        Facebook
+      </a>
+      <a href="https://www.facebook.com/groups/1080344266015477" target="_blank" class="social-link">
+        <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        Facebook Group
+      </a>
+      <a href="https://cults3d.com/@robabill" target="_blank" class="social-link">
+        <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.514 0 10 4.486 10 10s-4.486 10-10 10S2 17.514 2 12 6.486 2 12 2zm0 3a7 7 0 100 14A7 7 0 0012 5zm0 2a5 5 0 110 10A5 5 0 0112 7z"/></svg>
+        Cults3D
+      </a>
+      <a href="https://www.youtube.com/@startrekmodelmaker4457" target="_blank" class="social-link">
+        <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        YouTube
+      </a>
+      <a href="https://www.tiktok.com/@robabill" target="_blank" class="social-link">
+        <svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+        TikTok
+      </a>
+      <a href="https://www.threads.com/@roba.bill0101" target="_blank" class="social-link">
+        <svg viewBox="0 0 24 24"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.271 1.33-3.047.998-.844 2.498-1.318 4.342-1.372.588-.017 1.167.002 1.735.055-.07-.585-.27-1.063-.6-1.427-.465-.51-1.207-.77-2.205-.77h-.108c-.735.012-2.07.194-2.86 1.335l-1.658-1.137C9.316 3.768 10.7 3.2 12.506 3.2h.135c1.524.022 2.893.508 3.955 1.404 1.102.929 1.74 2.24 1.895 3.895.258.04.512.088.757.143 1.458.331 2.688 1.023 3.557 2.007 1.194 1.347 1.668 3.21 1.331 5.24-.459 2.726-2.018 4.812-4.438 6.04C17.638 23.4 15.098 24 12.186 24z"/></svg>
+        Threads
+      </a>
+      <a href="https://pin.it/4FYqnGkHw" target="_blank" class="social-link">
+        <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+        Pinterest
+      </a>
+      <a href="https://patreon.com/floortrek" target="_blank" class="social-link" style="color:#ff424d;border-color:#3a1520">
+        <svg viewBox="0 0 24 24"><path d="M14.82 2.41c3.96 0 7.18 3.24 7.18 7.21 0 3.96-3.22 7.18-7.18 7.18-3.97 0-7.21-3.22-7.21-7.18 0-3.97 3.24-7.21 7.21-7.21M2 21.6h3.5V2.41H2V21.6z"/></svg>
+        Patreon
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="nav-logo" style="font-size:1rem">✦ Strange<span>New</span>Models</div>
+        <p>Fan-designed Star Trek 3D print files. Designed and tested by Rob in North Wales. All designs are original fan creations.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Catalogue</h4>
+        <ul>
+          <li><a href="catalogue.html?cat=Federation">Federation</a></li>
+          <li><a href="catalogue.html?cat=Klingons">Klingons</a></li>
+          <li><a href="catalogue.html?cat=Romulans">Romulans</a></li>
+          <li><a href="catalogue.html?cat=Borg">Borg</a></li>
+          <li><a href="catalogue.html">All Ships</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Account</h4>
+        <ul>
+          <li><a href="#" onclick="showModal('login')">Log In</a></li>
+          <li><a href="#" onclick="showModal('register')">Create Account</a></li>
+          <li><a href="account.html">My Orders</a></li>
+          <li><a href="account.html#downloads">Downloads</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Info</h4>
+        <ul>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="terms.html">Terms of Use</a></li>
+          <li><a href="terms.html#licence">Print Licence</a></li>
+          <li><a href="https://patreon.com/floortrek" target="_blank">Patreon</a></li>
+          <li><a href="https://cults3d.com/@robabill" target="_blank">Cults3D</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Strange New Models · Rob Belboah · All original designs · Not affiliated with Paramount or CBS</p>
+      <p style="color:var(--dim2)">Contact: robbybelboah@msn.com · <a href="https://www.facebook.com/rob.cooter.9" target="_blank" style="color:var(--accent)">Facebook</a></p>
+    </div>
+  </div>
+</footer>
+
+<!-- MESSENGER BUBBLE -->
+<a href="https://m.me/rob.cooter.9" target="_blank" class="messenger-bubble" title="Message on Facebook">
+  <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 4.975 0 11.111c0 3.498 1.744 6.614 4.469 8.652V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.975 12-11.111C24 4.975 18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26L10.732 8l3.131 3.259L19.752 8l-6.561 6.963z"/></svg>
+</a>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('login')">✕</button>
+    <h2 id="modalTitle">Log In</h2>
+    <div id="loginForm">
+      <div class="form-field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="your@email.com">
+      </div>
+      <div class="form-field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="handleLogin()">Log In</button>
+      <div class="form-divider">or</div>
+      <button class="btn-google" onclick="handleGoogleAuth()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <div class="modal-switch">Don't have an account? <a onclick="switchModal('register')">Create one free</a></div>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="form-field">
+        <label>Name</label>
+        <input type="text" id="regName" placeholder="Your name">
+      </div>
+      <div class="form-field">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="your@email.com">
+      </div>
+      <div class="form-field">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="Min 8 characters">
+      </div>
+      <div style="margin-bottom:16px;font-size:0.75rem;color:var(--dim)">
+        By creating an account you agree to our <a href="terms.html" style="color:var(--accent)">Terms of Use</a> and print licence.
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="handleRegister()">Create Account</button>
+      <div class="form-divider">or</div>
+      <button class="btn-google" onclick="handleGoogleAuth()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <div class="modal-switch">Already have an account? <a onclick="switchModal('login')">Log in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── MODAL ──────────────────────────────────────────────────────
+function showModal(type) {
+  document.getElementById('loginModal').classList.add('show');
+  switchModal(type);
+}
+function closeModal() {
+  document.getElementById('loginModal').classList.remove('show');
+}
+function switchModal(type) {
+  const isLogin = type === 'login';
+  document.getElementById('modalTitle').textContent = isLogin ? 'Log In' : 'Create Account';
+  document.getElementById('loginForm').style.display    = isLogin ? '' : 'none';
+  document.getElementById('registerForm').style.display = isLogin ? 'none' : '';
+}
+document.getElementById('loginModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('loginModal')) closeModal();
+});
+
+// ── AUTH (placeholder — wire to Supabase) ─────────────────────
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value;
+  // TODO: Supabase auth.signInWithPassword({ email, password })
+  showToast('Logging in… (Supabase coming soon)');
+  closeModal();
+}
+function handleRegister() {
+  // TODO: Supabase auth.signUp
+  showToast('Account created! Check your email to confirm.');
+  closeModal();
+}
+function handleGoogleAuth() {
+  // TODO: Supabase auth.signInWithOAuth({ provider: 'google' })
+  showToast('Google sign-in coming soon');
+}
+
+// ── TOAST ──────────────────────────────────────────────────────
+function showToast(msg, duration = 3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── KEYBOARD ESC ──────────────────────────────────────────────
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>

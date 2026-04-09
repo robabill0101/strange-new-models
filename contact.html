@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Strange New Models</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#04080f;--panel:#0a1220;--border:#112240;--border2:#1a3a6a;--accent:#00b8ff;--accent2:#ff6b35;--gold:#ffd700;--green:#00ff88;--text:#c8dff5;--dim:#4a6a90;}
+body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,0.4) 0%,transparent 100%),radial-gradient(1px 1px at 70% 60%,rgba(255,255,255,0.3) 0%,transparent 100%);}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(4,8,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.1rem;color:var(--accent);text-decoration:none;letter-spacing:0.08em;}
+.nav-logo span{color:var(--text);font-weight:400;}
+.nav-links{display:flex;align-items:center;gap:32px;list-style:none;}
+.nav-links a{color:var(--dim);text-decoration:none;font-family:'Orbitron',sans-serif;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;transition:color 0.2s;font-weight:600;}
+.nav-links a:hover,.nav-links a.active{color:var(--accent);}
+.btn{font-family:'Orbitron',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;padding:8px 20px;border:none;border-radius:2px;cursor:pointer;text-decoration:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-primary:hover{background:#33ccff;box-shadow:0 0 24px rgba(0,184,255,0.4);}
+
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:100px 40px 80px;}
+h1{font-family:'Orbitron',sans-serif;font-size:2rem;font-weight:700;color:#fff;margin-bottom:8px;}
+.page-sub{color:var(--dim);font-size:0.95rem;margin-bottom:48px;}
+
+.contact-layout{display:grid;grid-template-columns:1fr 380px;gap:48px;}
+
+/* FORM */
+.contact-form{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:32px;}
+.form-title{font-family:'Orbitron',sans-serif;font-size:0.8rem;letter-spacing:0.2em;color:var(--accent);text-transform:uppercase;margin-bottom:24px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-field{margin-bottom:16px;}
+.form-field label{display:block;color:var(--dim);font-size:0.75rem;letter-spacing:0.1em;margin-bottom:6px;text-transform:uppercase;}
+.form-field input,.form-field select,.form-field textarea{width:100%;background:#060e1a;border:1px solid var(--border);color:#fff;font-family:'Exo 2',sans-serif;font-size:0.92rem;padding:10px 14px;border-radius:2px;outline:none;transition:border-color 0.2s;}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--accent);}
+.form-field textarea{resize:vertical;min-height:140px;}
+.form-field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a6a90' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.send-btn{width:100%;justify-content:center;padding:14px;font-size:0.85rem;}
+.success-msg{display:none;text-align:center;padding:32px;color:var(--green);}
+.success-msg div{font-size:3rem;margin-bottom:12px;}
+
+/* SIDEBAR */
+.contact-sidebar{}
+.contact-card{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:20px;margin-bottom:16px;}
+.contact-card-title{font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:0.2em;color:var(--accent);text-transform:uppercase;margin-bottom:14px;}
+.contact-method{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);transition:color 0.15s;}
+.contact-method:last-child{border-bottom:none;}
+.contact-method:hover{color:var(--accent);}
+.contact-method-icon{font-size:1.3rem;width:32px;text-align:center;flex-shrink:0;}
+.contact-method-info{}
+.contact-method-label{font-size:0.72rem;color:var(--dim);display:block;margin-bottom:2px;}
+.contact-method-val{font-size:0.88rem;font-weight:500;}
+
+.social-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.social-card{background:#060e1a;border:1px solid var(--border);border-radius:2px;padding:12px;text-align:center;text-decoration:none;color:var(--dim);transition:all 0.15s;font-size:0.78rem;}
+.social-card:hover{border-color:var(--accent);color:var(--accent);}
+.social-card div{font-size:1.4rem;margin-bottom:4px;}
+
+.response-note{background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.15);border-radius:2px;padding:12px 14px;font-size:0.78rem;color:var(--green);margin-top:16px;}
+
+.toast{position:fixed;bottom:28px;right:28px;background:var(--panel);border:1px solid var(--green);border-radius:3px;padding:12px 20px;color:var(--green);font-size:0.85rem;z-index:3000;transform:translateX(120%);transition:transform 0.3s;}
+.toast.show{transform:translateX(0);}
+
+.messenger-bubble{position:fixed;bottom:28px;right:28px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#0084ff,#00c6ff);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:999;box-shadow:0 4px 20px rgba(0,132,255,0.5);transition:transform 0.2s;text-decoration:none;}
+.messenger-bubble:hover{transform:scale(1.1);}
+.messenger-bubble svg{width:28px;height:28px;fill:white;}
+
+@media(max-width:900px){.contact-layout{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}nav{padding:0 20px;}.nav-links{display:none;}.page{padding:80px 20px 40px;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">✦ Strange<span>New</span>Models</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="catalogue.html">Catalogue</a></li>
+    <li><a href="contact.html" class="active">Contact</a></li>
+  </ul>
+  <div><a href="catalogue.html" class="btn btn-primary">Browse Ships</a></div>
+</nav>
+
+<div class="page">
+  <h1>Get in Touch</h1>
+  <p class="page-sub">Questions about a file, custom orders, or just want to say hello?</p>
+
+  <div class="contact-layout">
+    <div class="contact-form">
+      <div class="form-title">📡 Send a Message</div>
+      <div id="formContent">
+        <div class="form-row">
+          <div class="form-field">
+            <label>Your Name</label>
+            <input type="text" id="cName" placeholder="Captain Kirk">
+          </div>
+          <div class="form-field">
+            <label>Email Address</label>
+            <input type="email" id="cEmail" placeholder="your@email.com">
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Subject</label>
+          <select id="cSubject">
+            <option value="">Select a subject…</option>
+            <option>Question about a file</option>
+            <option>Download / order issue</option>
+            <option>Custom design request</option>
+            <option>Wholesale / bulk order</option>
+            <option>Press / collaboration</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Message</label>
+          <textarea id="cMessage" placeholder="Tell me what you need…"></textarea>
+        </div>
+        <button class="btn btn-primary send-btn" onclick="sendMessage()">🚀 Send Message</button>
+        <p style="color:var(--dim);font-size:0.75rem;margin-top:12px;text-align:center">Messages go directly to robbybelboah@msn.com</p>
+      </div>
+      <div class="success-msg" id="successMsg">
+        <div>✅</div>
+        <p style="color:#fff;font-size:1rem;margin-bottom:8px">Message sent!</p>
+        <p style="color:var(--dim);font-size:0.85rem">Rob will get back to you within 24–48 hours.</p>
+      </div>
+    </div>
+
+    <div class="contact-sidebar">
+      <div class="contact-card">
+        <div class="contact-card-title">Direct Contact</div>
+        <a href="mailto:robbybelboah@msn.com" class="contact-method">
+          <div class="contact-method-icon">✉</div>
+          <div class="contact-method-info">
+            <span class="contact-method-label">Email</span>
+            <span class="contact-method-val">robbybelboah@msn.com</span>
+          </div>
+        </a>
+        <a href="https://www.facebook.com/groups/1080344266015477" target="_blank" class="contact-method">
+          <div class="contact-method-icon">💬</div>
+          <div class="contact-method-info">
+            <span class="contact-method-label">Facebook Messenger</span>
+            <span class="contact-method-val">Message on Facebook</span>
+          </div>
+        </a>
+        <a href="https://patreon.com/floortrek" target="_blank" class="contact-method">
+          <div class="contact-method-icon">❤</div>
+          <div class="contact-method-info">
+            <span class="contact-method-label">Patreon</span>
+            <span class="contact-method-val">Floor Trek</span>
+          </div>
+        </a>
+        <div class="response-note">⏱ Typical response time: 24–48 hours</div>
+      </div>
+
+      <div class="contact-card">
+        <div class="contact-card-title">Follow &amp; Share</div>
+        <div class="social-grid">
+          <a href="https://www.facebook.com/groups/1080344266015477" target="_blank" class="social-card"><div>📘</div>Facebook Group</a>
+          <a href="https://www.youtube.com/@startrekmodelmaker4457" target="_blank" class="social-card"><div>▶</div>YouTube</a>
+          <a href="https://www.tiktok.com/@robabill" target="_blank" class="social-card"><div>🎵</div>TikTok</a>
+          <a href="https://www.threads.com/@roba.bill0101" target="_blank" class="social-card"><div>🧵</div>Threads</a>
+          <a href="https://pin.it/4FYqnGkHw" target="_blank" class="social-card"><div>📌</div>Pinterest</a>
+          <a href="https://patreon.com/floortrek" target="_blank" class="social-card" style="border-color:#3a1520;color:#ff424d"><div>❤</div>Patreon</a>
+        </div>
+      </div>
+
+      <div class="contact-card">
+        <div class="contact-card-title">Also Available On</div>
+        <a href="https://cults3d.com/@robabill" target="_blank" class="contact-method">
+          <div class="contact-method-icon">🖨</div>
+          <div class="contact-method-info">
+            <span class="contact-method-label">3D Print marketplace</span>
+            <span class="contact-method-val">Cults3D</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href="https://m.me/rob.cooter.9" target="_blank" class="messenger-bubble">
+  <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 4.975 0 11.111c0 3.498 1.744 6.614 4.469 8.652V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.975 12-11.111C24 4.975 18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26L10.732 8l3.131 3.259L19.752 8l-6.561 6.963z"/></svg>
+</a>
+<div class="toast" id="toast"></div>
+
+<script>
+function sendMessage() {
+  const name    = document.getElementById('cName').value.trim();
+  const email   = document.getElementById('cEmail').value.trim();
+  const subject = document.getElementById('cSubject').value;
+  const message = document.getElementById('cMessage').value.trim();
+  if (!name || !email || !message) { showToast('Please fill in all fields'); return; }
+  // TODO: wire to Netlify Forms or EmailJS
+  // For now show success
+  document.getElementById('formContent').style.display = 'none';
+  document.getElementById('successMsg').style.display  = 'block';
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+# Strange New Models — Netlify Deployment Config
+
+[build]
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Contact form handling — sends to robbybelboah@msn.com
+[[redirects]]
+  from = "/contact-success"
+  to = "/contact.html?sent=1"
+  status = 200
+
+# Pretty URLs
+[[redirects]]
+  from = "/catalogue"
+  to = "/catalogue.html"
+  status = 200
+
+[[redirects]]
+  from = "/ship/:id"
+  to = "/ship.html?id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/terms"
+  to = "/terms.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/contact.html"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

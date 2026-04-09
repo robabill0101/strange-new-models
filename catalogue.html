@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catalogue — Strange New Models</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#04080f; --bg2:#070d18; --panel:#0a1220; --border:#112240; --border2:#1a3a6a;
+  --accent:#00b8ff; --accent2:#ff6b35; --gold:#ffd700; --green:#00ff88;
+  --text:#c8dff5; --dim:#4a6a90; --dim2:#2a4a70; --red:#ff4d6d;
+}
+html { scroll-behavior: smooth; }
+body { background:var(--bg); color:var(--text); font-family:'Exo 2',sans-serif; min-height:100vh; }
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 55%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 65% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 85%, rgba(255,255,255,0.4) 0%, transparent 100%);
+}
+
+/* NAV */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:1000;
+  background:rgba(4,8,15,0.92); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 40px; height:64px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.nav-logo { font-family:'Orbitron',sans-serif; font-weight:900; font-size:1.1rem; color:var(--accent); text-decoration:none; letter-spacing:0.08em; text-shadow:0 0 20px rgba(0,184,255,0.5); }
+.nav-logo span { color:var(--text); font-weight:400; }
+.nav-links { display:flex; align-items:center; gap:32px; list-style:none; }
+.nav-links a { color:var(--dim); text-decoration:none; font-family:'Orbitron',sans-serif; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; transition:color 0.2s; font-weight:600; }
+.nav-links a:hover, .nav-links a.active { color:var(--accent); }
+.nav-actions { display:flex; gap:12px; align-items:center; }
+.btn { font-family:'Orbitron',sans-serif; font-weight:700; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; padding:8px 20px; border:none; border-radius:2px; cursor:pointer; text-decoration:none; transition:all 0.2s; display:inline-flex; align-items:center; gap:6px; }
+.btn-primary { background:var(--accent); color:#000; }
+.btn-primary:hover { background:#33ccff; box-shadow:0 0 24px rgba(0,184,255,0.4); }
+.btn-outline { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+.btn-outline:hover { background:rgba(0,184,255,0.1); }
+
+/* PAGE HEADER */
+.page-header {
+  position:relative; z-index:1; padding:100px 40px 40px;
+  background:linear-gradient(to bottom, rgba(0,30,80,0.3) 0%, transparent 100%);
+}
+.breadcrumb { font-size:0.78rem; color:var(--dim); margin-bottom:16px; }
+.breadcrumb a { color:var(--accent); text-decoration:none; }
+.breadcrumb a:hover { text-decoration:underline; }
+.page-header h1 { font-family:'Orbitron',sans-serif; font-size:2rem; font-weight:700; color:#fff; margin-bottom:8px; }
+.page-header p { color:var(--dim); font-size:0.95rem; }
+
+/* FILTER BAR */
+.filter-bar {
+  position:relative; z-index:1;
+  padding:0 40px 24px;
+  display:flex; gap:12px; flex-wrap:wrap; align-items:center;
+}
+.filter-btn {
+  font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:0.12em;
+  text-transform:uppercase; padding:8px 16px; border-radius:2px;
+  cursor:pointer; transition:all 0.15s; border:1px solid var(--border);
+  background:var(--panel); color:var(--dim);
+}
+.filter-btn:hover { border-color:var(--accent); color:var(--accent); }
+.filter-btn.active { border-color:var(--accent); background:rgba(0,184,255,0.1); color:var(--accent); }
+.search-box {
+  display:flex; align-items:center; gap:8px;
+  background:var(--panel); border:1px solid var(--border); border-radius:2px;
+  padding:0 14px; margin-left:auto;
+}
+.search-box input {
+  background:none; border:none; color:var(--text); font-family:'Exo 2',sans-serif;
+  font-size:0.85rem; padding:8px 0; width:220px; outline:none;
+}
+.search-box input::placeholder { color:var(--dim); }
+
+/* CATALOGUE GRID */
+.catalogue-main { position:relative; z-index:1; padding:0 40px 80px; }
+
+/* Category section headers */
+.cat-section { margin-bottom:48px; }
+.cat-section-header {
+  display:flex; align-items:center; gap:16px;
+  margin-bottom:20px; padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.cat-section-title { font-family:'Orbitron',sans-serif; font-size:1rem; font-weight:700; color:#fff; }
+.cat-section-count { font-size:0.78rem; color:var(--accent); margin-left:auto; }
+.cat-section-view { font-family:'Orbitron',sans-serif; font-size:0.65rem; color:var(--dim); text-decoration:none; letter-spacing:0.1em; transition:color 0.15s; }
+.cat-section-view:hover { color:var(--accent); }
+
+/* Ship grid */
+.ships-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+  gap:14px;
+}
+
+/* Ship card */
+.ship-card {
+  background:var(--panel); border:1px solid var(--border); border-radius:3px;
+  overflow:hidden; transition:all 0.2s; cursor:pointer; position:relative;
+}
+.ship-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,184,255,0.12); }
+.ship-card-img {
+  aspect-ratio:4/3; background:#060e1a; position:relative; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.ship-card-img img { width:100%; height:100%; object-fit:cover; transition:transform 0.3s; }
+.ship-card:hover .ship-card-img img { transform:scale(1.04); }
+.ship-card-img-placeholder { color:var(--dim2); font-size:2.5rem; }
+
+.ship-card-badge {
+  position:absolute; top:8px; right:8px;
+  font-family:'Orbitron',sans-serif; font-size:0.55rem; letter-spacing:0.1em;
+  padding:3px 7px; border-radius:1px; font-weight:700;
+}
+.badge-kit { background:var(--gold); color:#000; }
+.badge-new { background:var(--green); color:#000; }
+.badge-sale { background:var(--accent2); color:#fff; }
+
+.ship-card-body { padding:10px 12px; }
+.ship-card-name { font-size:0.82rem; font-weight:600; color:#fff; margin-bottom:8px; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.ship-card-footer { display:flex; justify-content:space-between; align-items:center; }
+.ship-price { font-family:'Orbitron',sans-serif; font-size:0.88rem; font-weight:700; color:var(--gold); }
+.ship-price .old-price { font-size:0.65rem; color:var(--dim); text-decoration:line-through; margin-right:4px; font-weight:400; }
+
+.ship-actions { display:flex; gap:6px; align-items:center; }
+.like-btn {
+  background:none; border:none; cursor:pointer; color:var(--dim);
+  font-size:0.85rem; transition:all 0.15s; padding:2px; display:flex; align-items:center; gap:3px;
+}
+.like-btn:hover { color:var(--red); transform:scale(1.15); }
+.like-btn.liked { color:var(--red); }
+.like-count { font-size:0.7rem; color:var(--dim); }
+
+.share-btn {
+  background:none; border:none; cursor:pointer; color:var(--dim);
+  font-size:0.82rem; transition:color 0.15s; padding:2px;
+}
+.share-btn:hover { color:var(--accent); }
+
+/* SIDEBAR */
+.catalogue-layout { display:grid; grid-template-columns:220px 1fr; gap:32px; }
+.sidebar { position:sticky; top:80px; height:fit-content; }
+.sidebar-section { margin-bottom:24px; }
+.sidebar-title { font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:0.2em; color:var(--accent); text-transform:uppercase; margin-bottom:12px; }
+.sidebar-links { list-style:none; display:flex; flex-direction:column; gap:2px; }
+.sidebar-links li a {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:8px 12px; border-radius:2px; text-decoration:none;
+  color:var(--dim); font-size:0.82rem; transition:all 0.15s;
+  border:1px solid transparent;
+}
+.sidebar-links li a:hover, .sidebar-links li a.active {
+  color:var(--accent); background:rgba(0,184,255,0.06); border-color:var(--border);
+}
+.sidebar-links li a span { color:var(--dim2); font-size:0.72rem; }
+.price-filter { display:flex; flex-direction:column; gap:8px; }
+.price-filter label { display:flex; align-items:center; gap:8px; color:var(--dim); font-size:0.82rem; cursor:pointer; }
+.price-filter input[type=checkbox] { accent-color:var(--accent); width:14px; height:14px; }
+
+/* SHARE POPUP */
+.share-popup {
+  position:absolute; bottom:calc(100% + 8px); right:0;
+  background:var(--panel); border:1px solid var(--border2);
+  border-radius:3px; padding:10px; min-width:180px;
+  display:none; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.5);
+}
+.share-popup.show { display:block; }
+.share-popup a {
+  display:flex; align-items:center; gap:8px;
+  color:var(--dim); font-size:0.78rem; text-decoration:none;
+  padding:6px 8px; border-radius:2px; transition:all 0.15s;
+}
+.share-popup a:hover { color:var(--accent); background:rgba(0,184,255,0.06); }
+
+/* TOAST */
+.toast { position:fixed; bottom:28px; right:28px; background:var(--panel); border:1px solid var(--accent); border-radius:3px; padding:12px 20px; color:var(--accent); font-size:0.85rem; z-index:3000; transform:translateX(120%); transition:transform 0.3s; max-width:300px; }
+.toast.show { transform:translateX(0); }
+
+/* MESSENGER */
+.messenger-bubble { position:fixed; bottom:28px; right:28px; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#0084ff,#00c6ff); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:999; box-shadow:0 4px 20px rgba(0,132,255,0.5); transition:transform 0.2s; text-decoration:none; }
+.messenger-bubble:hover { transform:scale(1.1); }
+.messenger-bubble svg { width:28px; height:28px; fill:white; }
+
+@media (max-width:900px) {
+  .catalogue-layout { grid-template-columns:1fr; }
+  .sidebar { position:static; display:flex; flex-wrap:wrap; gap:16px; }
+  nav { padding:0 20px; }
+  .nav-links { display:none; }
+  .page-header, .filter-bar, .catalogue-main { padding-left:20px; padding-right:20px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">✦ Strange<span>New</span>Models</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="catalogue.html" class="active">Catalogue</a></li>
+    <li><a href="index.html#patreon">News</a></li>
+    <li><a href="index.html#videos">Videos</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="btn btn-outline" onclick="showLoginToast()">Log In</button>
+    <a href="catalogue.html" class="btn btn-primary">Browse Ships</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="index.html">Home</a> › <span id="breadcrumbCat">Catalogue</span></div>
+  <h1 id="pageTitle">All Ships</h1>
+  <p id="pageDesc">Browse the full collection of original fan-designed 3D print files</p>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="setFilter('all',this)">All Ships</button>
+  <button class="filter-btn" onclick="setFilter('new',this)">New Arrivals</button>
+  <button class="filter-btn" onclick="setFilter('sale',this)">On Sale</button>
+  <button class="filter-btn" onclick="setFilter('kit',this)">KIT Files</button>
+  <div class="search-box">
+    <span style="color:var(--dim)">🔍</span>
+    <input type="text" placeholder="Search ships…" id="searchInput" oninput="filterShips()">
+  </div>
+</div>
+
+<div class="catalogue-main">
+  <div class="catalogue-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Factions</div>
+        <ul class="sidebar-links" id="factionList">
+          <li><a href="?cat=all" class="active">All Factions <span id="totalCount">—</span></a></li>
+          <li><a href="?cat=Federation">Federation <span>—</span></a></li>
+          <li><a href="?cat=Klingons">Klingons <span>132</span></a></li>
+          <li><a href="?cat=Romulans">Romulans <span>—</span></a></li>
+          <li><a href="?cat=Borg">Borg <span>—</span></a></li>
+          <li><a href="?cat=Stations">Stations <span>—</span></a></li>
+          <li><a href="?cat=Stands">Stands <span>—</span></a></li>
+          <li><a href="?cat=Star+Wars">Star Wars <span>—</span></a></li>
+          <li><a href="?cat=Other+Aliens">Other Aliens <span>—</span></a></li>
+          <li><a href="?cat=Other+Franchises">Other Franchises <span>—</span></a></li>
+        </ul>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Price</div>
+        <div class="price-filter">
+          <label><input type="checkbox" checked onchange="filterShips()"> Standard (£12)</label>
+          <label><input type="checkbox" checked onchange="filterShips()"> Athena (£25)</label>
+          <label><input type="checkbox" checked onchange="filterShips()"> KIT Files (£70)</label>
+          <label><input type="checkbox" onchange="filterShips()"> On Sale</label>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Sort by</div>
+        <select onchange="sortShips(this.value)" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:'Exo 2',sans-serif;padding:8px 10px;border-radius:2px;font-size:0.82rem;outline:none">
+          <option value="name">Name A–Z</option>
+          <option value="name-z">Name Z–A</option>
+          <option value="price-asc">Price Low–High</option>
+          <option value="price-desc">Price High–Low</option>
+          <option value="likes">Most Liked</option>
+          <option value="newest">Newest First</option>
+        </select>
+      </div>
+    </aside>
+
+    <!-- MAIN GRID -->
+    <div>
+      <div id="shipGrid" class="ships-grid"></div>
+      <div id="emptyState" style="display:none;text-align:center;padding:60px 0;color:var(--dim)">
+        <div style="font-size:3rem;margin-bottom:16px">🚀</div>
+        <p>No ships found. Try a different search or filter.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<a href="https://www.facebook.com/groups/1080344266015477" target="_blank" class="messenger-bubble" title="Message on Facebook">
+  <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 4.975 0 11.111c0 3.498 1.744 6.614 4.469 8.652V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.975 12-11.111C24 4.975 18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26L10.732 8l3.131 3.259L19.752 8l-6.561 6.963z"/></svg>
+</a>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DEMO DATA (replace with Supabase fetch) ───────────────────
+const DEMO_SHIPS = [
+  { id:1, name:'Conny Klingon',                    faction:'Klingons', price:12, likes:24, isNew:false, isKit:false, isSale:false },
+  { id:2, name:'Kitimar Class',                    faction:'Klingons', price:12, likes:18, isNew:false, isKit:false, isSale:false },
+  { id:3, name:'Klingon Neb-tugh',                 faction:'Klingons', price:12, likes:31, isNew:true,  isKit:false, isSale:false },
+  { id:4, name:'Klingon Bird of Prey Abrams',      faction:'Klingons', price:12, likes:55, isNew:false, isKit:false, isSale:true, salePrice:9 },
+  { id:5, name:'Klingon D22 Bird of Prey',         faction:'Klingons', price:12, likes:44, isNew:true,  isKit:false, isSale:false },
+  { id:6, name:'Klingon Battlecruiser KIT',        faction:'Klingons', price:70, likes:12, isNew:false, isKit:true,  isSale:false },
+  { id:7, name:'Federation Excelsior Class',       faction:'Federation', price:12, likes:38, isNew:false, isKit:false, isSale:false },
+  { id:8, name:'USS Enterprise D KIT',             faction:'Federation', price:70, likes:89, isNew:false, isKit:true,  isSale:false },
+  { id:9, name:'Romulan Warbird',                  faction:'Romulans',  price:12, likes:62, isNew:false, isKit:false, isSale:false },
+  { id:10, name:'Athena Class',                    faction:'Federation', price:25, likes:27, isNew:true,  isKit:false, isSale:false },
+];
+
+let likedShips  = JSON.parse(localStorage.getItem('likedShips')  || '[]');
+let activeFilter = 'all';
+let activeSearch = '';
+
+function getPrice(ship) {
+  if (ship.name.toUpperCase().includes('KIT'))    return 70;
+  if (ship.name.toLowerCase().includes('athena')) return 25;
+  return ship.price || 12;
+}
+
+function renderShips(ships) {
+  const grid = document.getElementById('shipGrid');
+  const empty = document.getElementById('emptyState');
+  if (!ships.length) { grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  grid.innerHTML = ships.map(ship => {
+    const price    = getPrice(ship);
+    const liked    = likedShips.includes(ship.id);
+    const badge    = ship.isKit  ? '<span class="ship-card-badge badge-kit">KIT</span>' :
+                     ship.isNew  ? '<span class="ship-card-badge badge-new">NEW</span>' :
+                     ship.isSale ? '<span class="ship-card-badge badge-sale">SALE</span>' : '';
+    const priceHtml = ship.isSale
+      ? `<span class="old-price">£${price}</span>£${ship.salePrice}`
+      : `£${price}`;
+    return `
+      <div class="ship-card" onclick="window.location.href='ship.html?id=${ship.id}'">
+        <div class="ship-card-img">
+          <div class="ship-card-img-placeholder">🚀</div>
+          ${badge}
+        </div>
+        <div class="ship-card-body">
+          <div class="ship-card-name" title="${ship.name}">${ship.name}</div>
+          <div class="ship-card-footer">
+            <div class="ship-price">${priceHtml}</div>
+            <div class="ship-actions" onclick="event.stopPropagation()">
+              <button class="like-btn ${liked?'liked':''}" onclick="toggleLike(${ship.id},this)" title="Like">
+                ${liked?'❤':'🤍'} <span class="like-count" id="likes-${ship.id}">${ship.likes + (liked?1:0)}</span>
+              </button>
+              <div style="position:relative">
+                <button class="share-btn" onclick="toggleShare(${ship.id})" title="Share">📤</button>
+                <div class="share-popup" id="share-${ship.id}">
+                  <a href="#" onclick="copyLink(${ship.id})">🔗 Copy link</a>
+                  <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}%3Fid%3D${ship.id}" target="_blank">📘 Share to Facebook</a>
+                  <a href="https://wa.me/?text=${encodeURIComponent(ship.name+' — Strange New Models: '+location.origin+'/ship.html?id='+ship.id)}" target="_blank">💬 WhatsApp</a>
+                  <a href="https://pinterest.com/pin/create/button/?url=${encodeURIComponent(location.origin+'/ship.html?id='+ship.id)}&description=${encodeURIComponent(ship.name)}" target="_blank">📌 Pinterest</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleLike(id, btn) {
+  const idx = likedShips.indexOf(id);
+  const ship = DEMO_SHIPS.find(s => s.id === id);
+  const countEl = document.getElementById('likes-'+id);
+  if (idx === -1) {
+    likedShips.push(id);
+    btn.classList.add('liked');
+    btn.innerHTML = `❤ <span class="like-count" id="likes-${id}">${++ship.likes}</span>`;
+    showToast('❤ Liked!');
+  } else {
+    likedShips.splice(idx,1);
+    btn.classList.remove('liked');
+    btn.innerHTML = `🤍 <span class="like-count" id="likes-${id}">${--ship.likes}</span>`;
+  }
+  localStorage.setItem('likedShips', JSON.stringify(likedShips));
+}
+
+function toggleShare(id) {
+  document.querySelectorAll('.share-popup').forEach(p => {
+    if (p.id !== 'share-'+id) p.classList.remove('show');
+  });
+  document.getElementById('share-'+id).classList.toggle('show');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.share-btn') && !e.target.closest('.share-popup')) {
+    document.querySelectorAll('.share-popup').forEach(p => p.classList.remove('show'));
+  }
+});
+
+function copyLink(id) {
+  navigator.clipboard.writeText(location.origin+'/ship.html?id='+id);
+  showToast('🔗 Link copied!');
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterShips();
+}
+
+function filterShips() {
+  activeSearch = document.getElementById('searchInput').value.toLowerCase();
+  let ships = DEMO_SHIPS.filter(s => {
+    if (activeSearch && !s.name.toLowerCase().includes(activeSearch)) return false;
+    if (activeFilter === 'new'  && !s.isNew)  return false;
+    if (activeFilter === 'sale' && !s.isSale) return false;
+    if (activeFilter === 'kit'  && !s.isKit)  return false;
+    const urlCat = new URLSearchParams(location.search).get('cat');
+    if (urlCat && urlCat !== 'all' && s.faction !== urlCat) return false;
+    return true;
+  });
+  renderShips(ships);
+}
+
+function sortShips(by) {
+  DEMO_SHIPS.sort((a,b) => {
+    if (by==='name')       return a.name.localeCompare(b.name);
+    if (by==='name-z')     return b.name.localeCompare(a.name);
+    if (by==='price-asc')  return getPrice(a)-getPrice(b);
+    if (by==='price-desc') return getPrice(b)-getPrice(a);
+    if (by==='likes')      return b.likes-a.likes;
+    return b.id-a.id;
+  });
+  filterShips();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function showLoginToast() { showToast('Account system coming soon!'); }
+
+// Init
+const urlParams = new URLSearchParams(location.search);
+const cat = urlParams.get('cat');
+if (cat && cat !== 'all') {
+  document.getElementById('pageTitle').textContent = cat;
+  document.getElementById('breadcrumbCat').textContent = cat;
+  document.getElementById('pageDesc').textContent = `Browse all ${cat} 3D print files`;
+  document.querySelectorAll('.sidebar-links a').forEach(a => {
+    const href = a.getAttribute('href');
+    a.classList.toggle('active', href && href.includes('cat='+cat));
+    if (!href || !href.includes('cat='+cat)) a.classList.remove('active');
+  });
+}
+
+filterShips();
+</script>
+</body>
+</html>
