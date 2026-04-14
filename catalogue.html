@@ -204,22 +204,22 @@ nav {
 <body>
 
 <nav>
-  <a href="index.html" class="nav-logo">✦ Strange<span>New</span>Models</a>
+  <a class='nav-logo' href='/'>✦ Strange<span>New</span>Models</a>
   <ul class="nav-links">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="catalogue.html" class="active">Catalogue</a></li>
-    <li><a href="index.html#patreon">News</a></li>
-    <li><a href="index.html#videos">Videos</a></li>
-    <li><a href="contact.html">Contact</a></li>
+    <li><a href='/'>Home</a></li>
+    <li><a class='active' href='/catalogue'>Catalogue</a></li>
+    <li><a href='/#patreon'>News</a></li>
+    <li><a href='/#videos'>Videos</a></li>
+    <li><a href='/contact'>Contact</a></li>
   </ul>
   <div class="nav-actions">
     <button class="btn btn-outline" onclick="showLoginToast()">Log In</button>
-    <a href="catalogue.html" class="btn btn-primary">Browse Ships</a>
+    <a class='btn btn-primary' href='/catalogue'>Browse Ships</a>
   </div>
 </nav>
 
 <div class="page-header">
-  <div class="breadcrumb"><a href="index.html">Home</a> › <span id="breadcrumbCat">Catalogue</span></div>
+  <div class="breadcrumb"><a href='/'>Home</a> › <span id="breadcrumbCat">Catalogue</span></div>
   <h1 id="pageTitle">All Ships</h1>
   <p id="pageDesc">Browse the full collection of original fan-designed 3D print files</p>
 </div>
@@ -296,25 +296,63 @@ nav {
 <div class="toast" id="toast"></div>
 
 <script>
-// ── DEMO DATA (replace with Supabase fetch) ───────────────────
-const DEMO_SHIPS = [
-  { id:1, name:'Conny Klingon',                    faction:'Klingons', price:12, likes:24, isNew:false, isKit:false, isSale:false },
-  { id:2, name:'Kitimar Class',                    faction:'Klingons', price:12, likes:18, isNew:false, isKit:false, isSale:false },
-  { id:3, name:'Klingon Neb-tugh',                 faction:'Klingons', price:12, likes:31, isNew:true,  isKit:false, isSale:false },
-  { id:4, name:'Klingon Bird of Prey Abrams',      faction:'Klingons', price:12, likes:55, isNew:false, isKit:false, isSale:true, salePrice:9 },
-  { id:5, name:'Klingon D22 Bird of Prey',         faction:'Klingons', price:12, likes:44, isNew:true,  isKit:false, isSale:false },
-  { id:6, name:'Klingon Battlecruiser KIT',        faction:'Klingons', price:70, likes:12, isNew:false, isKit:true,  isSale:false },
-  { id:7, name:'Federation Excelsior Class',       faction:'Federation', price:12, likes:38, isNew:false, isKit:false, isSale:false },
-  { id:8, name:'USS Enterprise D KIT',             faction:'Federation', price:70, likes:89, isNew:false, isKit:true,  isSale:false },
-  { id:9, name:'Romulan Warbird',                  faction:'Romulans',  price:12, likes:62, isNew:false, isKit:false, isSale:false },
-  { id:10, name:'Athena Class',                    faction:'Federation', price:25, likes:27, isNew:true,  isKit:false, isSale:false },
-];
+// ── CONFIG ────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://ozciknzkolkhcntgsrfa.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_5LZuji7cOqKYadq4zD6kMA_xk8jMDs-';
 
-let likedShips  = JSON.parse(localStorage.getItem('likedShips')  || '[]');
+function getPrice(ship) {
+  if (ship.name && ship.name.toUpperCase().includes('KIT')) return 70;
+  if (ship.name && ship.name.toLowerCase().includes('athena')) return 25;
+  return parseFloat(ship.price) || 12;
+}
+
+function getSessionId() {
+  let sid = localStorage.getItem('snm_session');
+  if (!sid) { sid = 'sess_' + Math.random().toString(36).slice(2); localStorage.setItem('snm_session', sid); }
+  return sid;
+}
+
+// ── LIVE DATA ─────────────────────────────────────────────────
+let ALL_SHIPS = [];
+let likedShips = JSON.parse(localStorage.getItem('likedShips') || '[]');
 let activeFilter = 'all';
 let activeSearch = '';
 
-// getPrice defined in supabase.js
+async function loadShips() {
+  const grid = document.getElementById('shipGrid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#4a6a90;font-family:monospace">Loading ships…</div>';
+  try {
+    const url = 'https://ozciknzkolkhcntgsrfa.supabase.co/rest/v1/ships?select=id,name,faction,price,likes,is_kit,is_new,is_sale,sale_price,image_url&active=eq.true&order=name.asc&limit=2000';
+    const resp = await fetch(url, {
+      headers: {
+        'apikey': 'sb_publishable_5LZuji7cOqKYadq4zD6kMA_xk8jMDs-',
+        'Authorization': 'Bearer sb_publishable_5LZuji7cOqKYadq4zD6kMA_xk8jMDs-'
+      }
+    });
+    const ships = await resp.json();
+    if (!Array.isArray(ships)) throw new Error(JSON.stringify(ships).slice(0,200));
+    ALL_SHIPS = ships;
+    updateSidebarCounts(ships);
+    filterShips();
+  } catch(e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#ff6b35">Error: ' + e.message + '</div>';
+    console.error(e);
+  }
+}
+
+function updateSidebarCounts(ships) {
+  const counts = {};
+  ships.forEach(s => { counts[s.faction] = (counts[s.faction]||0)+1; });
+  document.querySelectorAll('.sidebar-links a').forEach(a => {
+    const href = a.getAttribute('href') || '';
+    const match = href.match(/cat=([^&]+)/);
+    const faction = match ? decodeURIComponent(match[1]) : 'all';
+    const countEl = a.querySelector('span');
+    if (countEl && counts[faction] !== undefined) countEl.textContent = counts[faction];
+  });
+  const totalEl = document.getElementById('totalCount');
+  if (totalEl) totalEl.textContent = ships.length;
+}
 
 function renderShips(ships) {
   const grid = document.getElementById('shipGrid');
@@ -322,79 +360,49 @@ function renderShips(ships) {
   if (!ships.length) { grid.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
   grid.innerHTML = ships.map(ship => {
-    const price    = getPrice(ship);
-    const liked    = likedShips.includes(ship.id);
-    const badge    = ship.is_kit  ? '<span class="ship-card-badge badge-kit">KIT</span>' :
-                     ship.is_new  ? '<span class="ship-card-badge badge-new">NEW</span>' :
-                     ship.is_sale ? '<span class="ship-card-badge badge-sale">SALE</span>' : '';
-    const priceHtml = ship.is_sale && ship.sale_price
-      ? `<span class="old-price">£${price}</span>£${ship.sale_price}`
-      : `£${price}`;
-    return `
-      <div class="ship-card" onclick="window.location.href='ship.html?id=${ship.id}'">
-        <div class="ship-card-img">
-          ${ship.image_url ? `<img src="${ship.image_url}" alt="${ship.name}" style="width:100%;height:100%;object-fit:cover">` : '<div class="ship-card-img-placeholder">🚀</div>'}
-          ${badge}
-        </div>
-        <div class="ship-card-body">
-          <div class="ship-card-name" title="${ship.name}">${ship.name}</div>
-          <div class="ship-card-footer">
-            <div class="ship-price">${priceHtml}</div>
-            <div class="ship-actions" onclick="event.stopPropagation()">
-              <button class="like-btn ${liked?'liked':''}" onclick="toggleLike(${ship.id},this)" title="Like">
-                ${liked?'❤':'🤍'} <span class="like-count" id="likes-${ship.id}">${ship.likes + (liked?1:0)}</span>
-              </button>
-              <div style="position:relative">
-                <button class="share-btn" onclick="toggleShare(${ship.id})" title="Share">📤</button>
-                <div class="share-popup" id="share-${ship.id}">
-                  <a href="#" onclick="copyLink(${ship.id})">🔗 Copy link</a>
-                  <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}%3Fid%3D${ship.id}" target="_blank">📘 Share to Facebook</a>
-                  <a href="https://wa.me/?text=${encodeURIComponent(ship.name+' — Strange New Models: '+location.origin+'/ship.html?id='+ship.id)}" target="_blank">💬 WhatsApp</a>
-                  <a href="https://pinterest.com/pin/create/button/?url=${encodeURIComponent(location.origin+'/ship.html?id='+ship.id)}&description=${encodeURIComponent(ship.name)}" target="_blank">📌 Pinterest</a>
-                </div>
-              </div>
-            </div>
+    const price = getPrice(ship);
+    const liked = likedShips.includes(ship.id);
+    const badge = ship.is_kit ? '<span class="ship-card-badge badge-kit">KIT</span>' :
+                  ship.is_new ? '<span class="ship-card-badge badge-new">NEW</span>' :
+                  ship.is_sale ? '<span class="ship-card-badge badge-sale">SALE</span>' : '';
+    const priceHtml = ship.is_sale && ship.sale_price ? `<span class="old-price">£${price}</span>£${ship.sale_price}` : `£${price}`;
+    return `<div class="ship-card" onclick="window.location.href='ship.html?id=${ship.id}'">
+      <div class="ship-card-img">
+        ${ship.image_url ? `<img src="${ship.image_url}" style="width:100%;height:100%;object-fit:cover">` : '<div class="ship-card-img-placeholder">🚀</div>'}
+        ${badge}
+      </div>
+      <div class="ship-card-body">
+        <div class="ship-card-name" title="${ship.name}">${ship.name}</div>
+        <div class="ship-card-footer">
+          <div class="ship-price">${priceHtml}</div>
+          <div class="ship-actions" onclick="event.stopPropagation()">
+            <a href="order-print.html?ship=${encodeURIComponent(ship.name)}" title="Order Print" style="color:#00b8ff;font-size:0.75rem;border:1px solid #112240;padding:3px 7px;border-radius:2px;text-decoration:none">🖨</a>
+            <button class="like-btn ${liked?'liked':''}" onclick="toggleLike(${ship.id},this)" title="Like">
+              ${liked?'❤':'🤍'} <span class="like-count" id="likes-${ship.id}">${ship.likes||(liked?1:0)}</span>
+            </button>
           </div>
         </div>
-      </div>`;
+      </div>
+    </div>`;
   }).join('');
 }
 
-async function toggleLike(id, btn) {
+function toggleLike(id, btn) {
   const idx = likedShips.indexOf(id);
   const ship = ALL_SHIPS.find(s => s.id === id);
   if (!ship) return;
   if (idx === -1) {
     likedShips.push(id);
-    ship.likes = (ship.likes||0) + 1;
+    ship.likes = (ship.likes||0)+1;
     btn.classList.add('liked');
-    btn.innerHTML = `❤ <span class="like-count" id="likes-${id}">${ship.likes}</span>`;
-    showToast('❤ Liked!');
-    likeShip(id).catch(()=>{});
+    btn.innerHTML = `❤ <span class="like-count">${ship.likes}</span>`;
   } else {
     likedShips.splice(idx,1);
-    ship.likes = Math.max(0, (ship.likes||1) - 1);
+    ship.likes = Math.max(0,(ship.likes||1)-1);
     btn.classList.remove('liked');
-    btn.innerHTML = `🤍 <span class="like-count" id="likes-${id}">${ship.likes}</span>`;
+    btn.innerHTML = `🤍 <span class="like-count">${ship.likes}</span>`;
   }
   localStorage.setItem('likedShips', JSON.stringify(likedShips));
-}
-
-function toggleShare(id) {
-  document.querySelectorAll('.share-popup').forEach(p => {
-    if (p.id !== 'share-'+id) p.classList.remove('show');
-  });
-  document.getElementById('share-'+id).classList.toggle('show');
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('.share-btn') && !e.target.closest('.share-popup')) {
-    document.querySelectorAll('.share-popup').forEach(p => p.classList.remove('show'));
-  }
-});
-
-function copyLink(id) {
-  navigator.clipboard.writeText(location.origin+'/ship.html?id='+id);
-  showToast('🔗 Link copied!');
 }
 
 function setFilter(f, btn) {
@@ -409,9 +417,9 @@ function filterShips() {
   const urlCat = new URLSearchParams(location.search).get('cat');
   let ships = ALL_SHIPS.filter(s => {
     if (activeSearch && !s.name.toLowerCase().includes(activeSearch)) return false;
-    if (activeFilter === 'new'  && !s.is_new)  return false;
+    if (activeFilter === 'new' && !s.is_new) return false;
     if (activeFilter === 'sale' && !s.is_sale) return false;
-    if (activeFilter === 'kit'  && !s.is_kit)  return false;
+    if (activeFilter === 'kit' && !s.is_kit) return false;
     if (urlCat && urlCat !== 'all' && s.faction !== urlCat) return false;
     return true;
   });
@@ -420,21 +428,21 @@ function filterShips() {
 
 function sortShips(by) {
   ALL_SHIPS.sort((a,b) => {
-    if (by==='name')       return a.name.localeCompare(b.name);
-    if (by==='name-z')     return b.name.localeCompare(a.name);
-    if (by==='price-asc')  return getPrice(a)-getPrice(b);
+    if (by==='name') return a.name.localeCompare(b.name);
+    if (by==='name-z') return b.name.localeCompare(a.name);
+    if (by==='price-asc') return getPrice(a)-getPrice(b);
     if (by==='price-desc') return getPrice(b)-getPrice(a);
-    if (by==='likes')      return b.likes-a.likes;
+    if (by==='likes') return b.likes-a.likes;
     return b.id-a.id;
   });
   filterShips();
 }
 
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  let t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), 2500);
 }
 function showLoginToast() { showToast('Account system coming soon!'); }
 
@@ -445,13 +453,8 @@ if (cat && cat !== 'all') {
   document.getElementById('pageTitle').textContent = cat;
   document.getElementById('breadcrumbCat').textContent = cat;
   document.getElementById('pageDesc').textContent = `Browse all ${cat} 3D print files`;
-  document.querySelectorAll('.sidebar-links a').forEach(a => {
-    const href = a.getAttribute('href') || '';
-    a.classList.toggle('active', href.includes('cat='+encodeURIComponent(cat)));
-  });
 }
 
-// Load live ships from Supabase
 window.addEventListener('load', loadShips);
 </script>
 </body>
