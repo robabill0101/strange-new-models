@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account — Strange New Models</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04080f;--bg2:#070d18;--panel:#0a1220;--panel2:#0d1628;
+  --border:#112240;--border2:#1a3a6a;
+  --accent:#00b8ff;--accent2:#ff6b35;--gold:#ffd700;--green:#00ff88;
+  --text:#c8dff5;--dim:#4a6a90;--dim2:#2a4a70;--red:#ff4d6d;
+  --patreon:#ff424d;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,0.4) 0%,transparent 100%),
+  radial-gradient(1px 1px at 75% 60%,rgba(255,255,255,0.3) 0%,transparent 100%),
+  radial-gradient(ellipse at 50% 0%,rgba(0,60,140,0.15) 0%,transparent 50%);}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(4,8,15,0.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.1rem;color:var(--accent);text-decoration:none;letter-spacing:0.08em;text-shadow:0 0 20px rgba(0,184,255,0.5);}
+.nav-logo span{color:var(--text);font-weight:400;}
+.nav-links{display:flex;align-items:center;gap:28px;list-style:none;}
+.nav-links a{color:var(--dim);text-decoration:none;font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;transition:color 0.2s;font-weight:600;}
+.nav-links a:hover{color:var(--accent);}
+.btn{font-family:'Orbitron',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;padding:9px 22px;border:none;border-radius:2px;cursor:pointer;text-decoration:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-primary:hover{background:#33ccff;box-shadow:0 0 24px rgba(0,184,255,0.4);}
+.btn-outline{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+.btn-outline:hover{background:rgba(0,184,255,0.1);}
+.btn-patreon{background:var(--patreon);color:#fff;}
+.btn-patreon:hover{background:#ff6b6b;}
+.btn-gold{background:var(--gold);color:#000;}
+.btn-gold:hover{background:#ffe033;}
+.btn-green{background:var(--green);color:#000;}
+.btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);}
+
+/* PAGE */
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:88px 40px 80px;}
+
+/* LOGIN WALL */
+#loginWall{text-align:center;padding:80px 20px;}
+#loginWall h2{font-family:'Orbitron',sans-serif;font-size:1.4rem;color:#fff;margin-bottom:12px;}
+#loginWall p{color:var(--dim);margin-bottom:28px;}
+
+/* ACCOUNT LAYOUT */
+.account-layout{display:grid;grid-template-columns:260px 1fr;gap:28px;align-items:start;}
+
+/* SIDEBAR */
+.account-sidebar{}
+.profile-card{background:var(--panel);border:1px solid var(--border2);border-radius:4px;padding:24px;text-align:center;margin-bottom:16px;}
+.profile-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--border2));display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 14px;}
+.profile-name{font-family:'Orbitron',sans-serif;font-size:0.9rem;font-weight:700;color:#fff;margin-bottom:4px;}
+.profile-email{font-size:0.75rem;color:var(--dim);margin-bottom:16px;}
+.credits-badge{background:linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,215,0,0.04));border:1px solid rgba(255,215,0,0.3);border-radius:3px;padding:12px;margin-bottom:14px;}
+.credits-num{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:var(--gold);display:block;}
+.credits-label{font-size:0.7rem;color:var(--dim);letter-spacing:0.15em;text-transform:uppercase;}
+.credits-worth{font-size:0.75rem;color:var(--green);margin-top:4px;}
+
+.patreon-badge{background:rgba(255,66,77,0.08);border:1px solid rgba(255,66,77,0.25);border-radius:3px;padding:10px;margin-bottom:14px;font-size:0.78rem;}
+.patreon-badge.connected{border-color:rgba(255,66,77,0.5);}
+.patreon-tier{font-weight:600;color:var(--patreon);}
+.patreon-discount{color:var(--green);font-size:0.72rem;margin-top:3px;}
+
+.sidebar-nav{background:var(--panel);border:1px solid var(--border);border-radius:3px;overflow:hidden;}
+.sidebar-nav a{display:flex;align-items:center;gap:10px;padding:12px 16px;color:var(--dim);text-decoration:none;font-size:0.82rem;border-bottom:1px solid var(--border);transition:all 0.15s;cursor:pointer;}
+.sidebar-nav a:last-child{border-bottom:none;}
+.sidebar-nav a:hover,.sidebar-nav a.active{color:var(--accent);background:rgba(0,184,255,0.05);}
+.sidebar-nav a span{font-size:1rem;}
+
+/* MAIN PANELS */
+.account-main{}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.panel-title{font-family:'Orbitron',sans-serif;font-size:0.75rem;letter-spacing:0.2em;color:var(--accent);text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+
+/* EARN CREDITS */
+.earn-grid{display:flex;flex-direction:column;gap:8px;}
+.earn-item{background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:border-color 0.15s;}
+.earn-item.claimed{opacity:0.5;}
+.earn-item.claimed .earn-btn{background:var(--dim2);color:var(--dim);cursor:not-allowed;pointer-events:none;}
+.earn-icon{font-size:1.5rem;flex-shrink:0;width:36px;text-align:center;}
+.earn-info{flex:1;}
+.earn-title{font-weight:600;color:#fff;font-size:0.88rem;margin-bottom:2px;}
+.earn-sub{font-size:0.72rem;color:var(--dim);}
+.earn-credits{font-family:'Orbitron',sans-serif;font-size:0.85rem;font-weight:700;color:var(--gold);margin-right:12px;white-space:nowrap;}
+.earn-btn{font-family:'Orbitron',sans-serif;font-size:0.62rem;letter-spacing:0.1em;padding:7px 14px;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:2px;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.earn-btn:hover{background:rgba(0,184,255,0.1);}
+.earn-btn.pending{border-color:var(--gold);color:var(--gold);}
+.earn-section-title{font-family:'Orbitron',sans-serif;font-size:0.65rem;letter-spacing:0.2em;color:var(--dim);text-transform:uppercase;margin:20px 0 8px;}
+
+/* SPEND CREDITS */
+.spend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px;}
+.spend-card{background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:16px;text-align:center;transition:border-color 0.15s;}
+.spend-card:hover{border-color:var(--gold);}
+.spend-card-icon{font-size:2rem;margin-bottom:8px;}
+.spend-card-title{font-size:0.85rem;font-weight:600;color:#fff;margin-bottom:4px;}
+.spend-card-cost{font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--gold);margin-bottom:10px;}
+.spend-card-value{font-size:0.72rem;color:var(--dim);margin-bottom:12px;}
+
+/* ORDERS */
+.orders-list{display:flex;flex-direction:column;gap:10px;}
+.order-card{background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:16px;}
+.order-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.order-name{font-weight:600;color:#fff;font-size:0.9rem;}
+.order-status{font-size:0.7rem;font-family:'Orbitron',sans-serif;padding:3px 8px;border-radius:10px;}
+.status-completed{background:rgba(0,255,136,0.1);color:var(--green);border:1px solid rgba(0,255,136,0.3);}
+.status-pending{background:rgba(255,215,0,0.1);color:var(--gold);border:1px solid rgba(255,215,0,0.3);}
+.order-meta{font-size:0.75rem;color:var(--dim);}
+
+/* COMMUNITY PHOTOS */
+.upload-zone{border:2px dashed var(--border);border-radius:3px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:20px;position:relative;}
+.upload-zone:hover{border-color:var(--accent);background:rgba(0,184,255,0.03);}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-icon{font-size:2.5rem;margin-bottom:10px;}
+.upload-text{color:var(--accent);font-size:0.9rem;margin-bottom:4px;}
+.upload-sub{font-size:0.75rem;color:var(--dim);}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+.photo-card{border-radius:3px;overflow:hidden;border:1px solid var(--border);position:relative;}
+.photo-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+.photo-status{position:absolute;top:6px;right:6px;font-size:0.6rem;font-family:'Orbitron',sans-serif;padding:2px 6px;border-radius:8px;}
+.photo-status.pending{background:rgba(255,215,0,0.9);color:#000;}
+.photo-status.approved{background:rgba(0,255,136,0.9);color:#000;}
+.photo-status.rejected{background:rgba(255,77,109,0.9);color:#fff;}
+.photo-caption{padding:8px 10px;font-size:0.72rem;color:var(--dim);background:var(--panel);}
+
+/* DOWNLOADS */
+.downloads-list{display:flex;flex-direction:column;gap:8px;}
+.download-item{background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:14px 16px;display:flex;align-items:center;gap:14px;}
+.download-info{flex:1;}
+.download-name{font-weight:600;color:#fff;font-size:0.88rem;}
+.download-meta{font-size:0.72rem;color:var(--dim);margin-top:2px;}
+.download-remaining{font-size:0.7rem;color:var(--accent);}
+
+/* CREDIT HISTORY */
+.history-list{display:flex;flex-direction:column;gap:6px;}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--panel2);border:1px solid var(--border);border-radius:2px;font-size:0.82rem;}
+.history-reason{color:var(--text);}
+.history-date{color:var(--dim);font-size:0.7rem;}
+.history-amount{font-family:'Orbitron',sans-serif;font-size:0.85rem;font-weight:700;}
+.history-amount.positive{color:var(--green);}
+.history-amount.negative{color:var(--red);}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--panel);border:1px solid var(--accent);border-radius:3px;padding:12px 20px;color:var(--accent);font-size:0.85rem;z-index:3000;transform:translateX(120%);transition:transform 0.3s;max-width:300px;}
+.toast.show{transform:translateX(0);}
+
+/* MESSENGER */
+.messenger-bubble{position:fixed;bottom:28px;right:28px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#0084ff,#00c6ff);display:flex;align-items:center;justify-content:center;z-index:999;box-shadow:0 4px 20px rgba(0,132,255,0.5);transition:transform 0.2s;text-decoration:none;}
+.messenger-bubble:hover{transform:scale(1.1);}
+.messenger-bubble svg{width:28px;height:28px;fill:white;}
+
+@media(max-width:900px){
+  .account-layout{grid-template-columns:1fr;}
+  nav{padding:0 20px;}
+  .nav-links{display:none;}
+  .page{padding:80px 20px 60px;}
+  .spend-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">✦ Strange<span>New</span>Models</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="catalogue.html">Catalogue</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div style="display:flex;gap:10px">
+    <a href="catalogue.html" class="btn btn-outline">Browse Ships</a>
+    <button class="btn btn-danger" onclick="signOut()" id="signOutBtn" style="display:none">Sign Out</button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- NOT LOGGED IN -->
+  <div id="loginWall">
+    <div style="font-size:4rem;margin-bottom:20px">🔐</div>
+    <h2>Sign in to your account</h2>
+    <p>Access your credits, downloads, order history and community photos.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" style="font-size:0.85rem;padding:12px 28px" onclick="showAuthModal('login')">Log In</button>
+      <button class="btn btn-outline" style="font-size:0.85rem;padding:12px 28px" onclick="showAuthModal('register')">Create Account</button>
+    </div>
+  </div>
+
+  <!-- LOGGED IN -->
+  <div id="accountContent" style="display:none">
+    <div class="account-layout">
+
+      <!-- SIDEBAR -->
+      <aside class="account-sidebar">
+        <div class="profile-card">
+          <div class="profile-avatar" id="profileAvatar">👤</div>
+          <div class="profile-name" id="profileName">Loading…</div>
+          <div class="profile-email" id="profileEmail"></div>
+          <div class="credits-badge">
+            <span class="credits-num" id="creditsNum">0</span>
+            <span class="credits-label">Credits</span>
+            <div class="credits-worth" id="creditsWorth"></div>
+          </div>
+          <div class="patreon-badge" id="patreonBadge">
+            <div id="patreonStatus">Not connected to Patreon</div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a class="active" onclick="showTab('earn')"><span>⭐</span> Earn Credits</a>
+          <a onclick="showTab('spend')"><span>🎁</span> Spend Credits</a>
+          <a onclick="showTab('downloads')"><span>💾</span> My Downloads</a>
+          <a onclick="showTab('photos')"><span>📸</span> My Photos</a>
+          <a onclick="showTab('orders')"><span>📦</span> Order History</a>
+          <a onclick="showTab('history')"><span>📋</span> Credit History</a>
+          <a onclick="showTab('settings')"><span>⚙</span> Settings</a>
+        </nav>
+      </aside>
+
+      <!-- MAIN -->
+      <div class="account-main">
+
+        <!-- EARN CREDITS -->
+        <div class="tab-panel active" id="tab-earn">
+          <div class="panel-title">⭐ Earn Credits</div>
+          <div class="earn-grid" id="earnGrid">
+            <div style="color:var(--dim);font-size:0.85rem">Loading…</div>
+          </div>
+        </div>
+
+        <!-- SPEND CREDITS -->
+        <div class="tab-panel" id="tab-spend">
+          <div class="panel-title">🎁 Spend Credits</div>
+          <p style="color:var(--dim);font-size:0.85rem;margin-bottom:20px">Credits can be spent on digital file purchases only. Not valid on physical print orders.</p>
+          <div class="spend-grid">
+            <div class="spend-card">
+              <div class="spend-card-icon">💸</div>
+              <div class="spend-card-title">£1 Off</div>
+              <div class="spend-card-cost">10 credits</div>
+              <div class="spend-card-value">Any digital file</div>
+              <button class="btn btn-gold" style="width:100%;justify-content:center;font-size:0.7rem" onclick="redeemCredits(10,'£1 off')">Redeem</button>
+            </div>
+            <div class="spend-card">
+              <div class="spend-card-icon">🎯</div>
+              <div class="spend-card-title">£3 Off</div>
+              <div class="spend-card-cost">28 credits</div>
+              <div class="spend-card-value">Any digital file</div>
+              <button class="btn btn-gold" style="width:100%;justify-content:center;font-size:0.7rem" onclick="redeemCredits(28,'£3 off')">Redeem</button>
+            </div>
+            <div class="spend-card">
+              <div class="spend-card-icon">🚀</div>
+              <div class="spend-card-title">Free Ship</div>
+              <div class="spend-card-cost">100 credits</div>
+              <div class="spend-card-value">Any standard £12 file</div>
+              <button class="btn btn-gold" style="width:100%;justify-content:center;font-size:0.7rem" onclick="redeemCredits(100,'Free standard ship')">Redeem</button>
+            </div>
+            <div class="spend-card">
+              <div class="spend-card-icon">✦</div>
+              <div class="spend-card-title">Free Athena</div>
+              <div class="spend-card-cost">200 credits</div>
+              <div class="spend-card-value">Any £25 Athena file</div>
+              <button class="btn btn-gold" style="width:100%;justify-content:center;font-size:0.7rem" onclick="redeemCredits(200,'Free Athena file')">Redeem</button>
+            </div>
+            <div class="spend-card">
+              <div class="spend-card-icon">💰</div>
+              <div class="spend-card-title">10% Off Order</div>
+              <div class="spend-card-cost">80 credits</div>
+              <div class="spend-card-value">Entire digital order</div>
+              <button class="btn btn-gold" style="width:100%;justify-content:center;font-size:0.7rem" onclick="redeemCredits(80,'10% off order')">Redeem</button>
+            </div>
+            <div class="spend-card">
+              <div class="spend-card-icon">🏆</div>
+              <div class="spend-card-title">Free KIT File</div>
+              <div class="spend-card-cost">600 credits</div>
+              <div class="spend-card-value">Any £70 KIT file</div>
+              <button class="btn btn-gold" style="width:100%;justify-content:center;font-size:0.7rem" onclick="redeemCredits(600,'Free KIT file')">Redeem</button>
+            </div>
+          </div>
+          <div style="background:rgba(255,107,53,0.05);border:1px solid rgba(255,107,53,0.2);border-radius:2px;padding:12px 16px;font-size:0.78rem;color:var(--dim)">
+            <strong style="color:var(--accent2)">Note:</strong> Redeemed credits generate a voucher code sent to your email. Credits do not expire. Physical print orders are not eligible.
+          </div>
+        </div>
+
+        <!-- DOWNLOADS -->
+        <div class="tab-panel" id="tab-downloads">
+          <div class="panel-title">💾 My Downloads</div>
+          <div class="downloads-list" id="downloadsList">
+            <div style="color:var(--dim);font-size:0.85rem;padding:20px 0">No purchases yet. <a href="catalogue.html" style="color:var(--accent)">Browse the catalogue →</a></div>
+          </div>
+        </div>
+
+        <!-- PHOTOS -->
+        <div class="tab-panel" id="tab-photos">
+          <div class="panel-title">📸 Community Photos</div>
+          <p style="color:var(--dim);font-size:0.82rem;margin-bottom:16px">Upload a photo of your finished print to earn <strong style="color:var(--gold)">+10 credits</strong> per approved photo. Photos are reviewed before appearing publicly.</p>
+
+          <div style="margin-bottom:16px">
+            <label class="field-label" style="display:block;font-size:0.75rem;color:var(--dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Which ship is this?</label>
+            <input type="text" id="photoShipSearch" placeholder="Search ship name…" style="width:100%;background:#060e1a;border:1px solid var(--border);color:#fff;font-family:'Exo 2',sans-serif;font-size:0.9rem;padding:10px 14px;border-radius:2px;outline:none;margin-bottom:8px" oninput="searchShipsForPhoto(this.value)">
+            <div id="shipSearchResults" style="display:none;background:var(--panel);border:1px solid var(--border);border-radius:2px;max-height:160px;overflow-y:auto"></div>
+            <input type="hidden" id="selectedShipId">
+            <div id="selectedShipName" style="font-size:0.78rem;color:var(--accent);margin-top:4px"></div>
+          </div>
+
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" accept="image/*" onchange="handlePhotoUpload(this.files[0])">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">Drop photo here or click to browse</div>
+            <div class="upload-sub">JPG, PNG up to 10MB · Must show your finished 3D print</div>
+          </div>
+
+          <div id="uploadPreview" style="display:none;margin-bottom:16px">
+            <img id="previewImg" style="max-width:200px;border-radius:3px;border:1px solid var(--border)">
+            <div style="margin-top:8px">
+              <input type="text" id="photoCaption" placeholder="Add a caption (optional)" style="width:100%;background:#060e1a;border:1px solid var(--border);color:#fff;font-family:'Exo 2',sans-serif;font-size:0.85rem;padding:8px 12px;border-radius:2px;outline:none">
+            </div>
+            <button class="btn btn-primary" style="margin-top:10px" onclick="submitPhoto()">📤 Submit for Review</button>
+            <button class="btn btn-outline" style="margin-top:10px;margin-left:8px" onclick="cancelUpload()">Cancel</button>
+          </div>
+
+          <div style="margin-top:24px">
+            <div class="panel-title" style="font-size:0.68rem">My Submitted Photos</div>
+            <div class="photo-grid" id="myPhotos">
+              <div style="color:var(--dim);font-size:0.82rem;grid-column:1/-1">No photos submitted yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ORDERS -->
+        <div class="tab-panel" id="tab-orders">
+          <div class="panel-title">📦 Order History</div>
+          <div class="orders-list" id="ordersList">
+            <div style="color:var(--dim);font-size:0.85rem;padding:20px 0">No orders yet.</div>
+          </div>
+        </div>
+
+        <!-- CREDIT HISTORY -->
+        <div class="tab-panel" id="tab-history">
+          <div class="panel-title">📋 Credit History</div>
+          <div class="history-list" id="historyList">
+            <div style="color:var(--dim);font-size:0.85rem;padding:20px 0">No transactions yet.</div>
+          </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div class="tab-panel" id="tab-settings">
+          <div class="panel-title">⚙ Account Settings</div>
+          <div style="background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:20px;margin-bottom:16px">
+            <div style="margin-bottom:16px">
+              <label style="display:block;font-size:0.75rem;color:var(--dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Display Name</label>
+              <input type="text" id="settingsName" style="width:100%;background:#060e1a;border:1px solid var(--border);color:#fff;font-family:'Exo 2',sans-serif;font-size:0.9rem;padding:10px 14px;border-radius:2px;outline:none">
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+          </div>
+
+          <div style="background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:20px;margin-bottom:16px">
+            <div class="panel-title" style="font-size:0.68rem">Patreon Connection</div>
+            <p style="color:var(--dim);font-size:0.82rem;margin-bottom:16px">Connect your Patreon account to unlock <strong style="color:var(--green)">50% off all digital files</strong> if you're an Ensign tier ($5/month) or above.</p>
+            <div id="patreonConnectArea">
+              <button class="btn btn-patreon" onclick="connectPatreon()">❤ Connect Patreon Account</button>
+            </div>
+          </div>
+
+          <div style="background:rgba(255,77,109,0.05);border:1px solid rgba(255,77,109,0.2);border-radius:3px;padding:20px">
+            <div class="panel-title" style="font-size:0.68rem;color:var(--red)">Danger Zone</div>
+            <button class="btn btn-danger" onclick="confirmDeleteAccount()">Delete My Account</button>
+          </div>
+        </div>
+
+      </div><!-- /account-main -->
+    </div>
+  </div><!-- /accountContent -->
+
+</div><!-- /page -->
+
+<!-- AUTH MODAL -->
+<div id="authModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:2000;align-items:center;justify-content:center">
+  <div style="background:var(--panel);border:1px solid var(--border2);border-radius:4px;padding:36px;width:100%;max-width:400px;position:relative">
+    <button onclick="closeAuthModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--dim);font-size:1.2rem;cursor:pointer">✕</button>
+    <h2 id="authTitle" style="font-family:'Orbitron',sans-serif;font-size:1rem;color:#fff;margin-bottom:24px;text-align:center">Log In</h2>
+    <div id="authNameField" style="display:none;margin-bottom:14px">
+      <label style="display:block;font-size:0.72rem;color:var(--dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Your Name</label>
+      <input type="text" id="authName" placeholder="Captain Kirk" style="width:100%;background:#060e1a;border:1px solid var(--border);color:#fff;font-family:'Exo 2',sans-serif;font-size:0.9rem;padding:10px 14px;border-radius:2px;outline:none">
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:0.72rem;color:var(--dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Email</label>
+      <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%;background:#060e1a;border:1px solid var(--border);color:#fff;font-family:'Exo 2',sans-serif;font-size:0.9rem;padding:10px 14px;border-radius:2px;outline:none">
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="display:block;font-size:0.72rem;color:var(--dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Password</label>
+      <input type="password" id="authPassword" placeholder="••••••••" style="width:100%;background:#060e1a;border:1px solid var(--border);color:#fff;font-family:'Exo 2',sans-serif;font-size:0.9rem;padding:10px 14px;border-radius:2px;outline:none">
+    </div>
+    <div id="authTerms" style="display:none;margin-bottom:14px;font-size:0.72rem;color:var(--dim)">
+      By signing up you agree to our <a href="terms.html" style="color:var(--accent)">Terms of Use</a>. You'll receive 5 free credits on account creation.
+    </div>
+    <button id="authSubmitBtn" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:0.82rem" onclick="submitAuth()">Log In</button>
+    <div id="authError" style="margin-top:10px;font-size:0.78rem;color:var(--red);text-align:center"></div>
+    <div style="text-align:center;margin-top:16px;font-size:0.78rem;color:var(--dim)" id="authSwitch">
+      Don't have an account? <a style="color:var(--accent);cursor:pointer" onclick="toggleAuthMode()">Create one free</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<a href="https://m.me/rob.cooter.9" target="_blank" class="messenger-bubble">
+  <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 4.975 0 11.111c0 3.498 1.744 6.614 4.469 8.652V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.975 12-11.111C24 4.975 18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26L10.732 8l3.131 3.259L19.752 8l-6.561 6.963z"/></svg>
+</a>
+
+<script src="supabase.js"></script>
+<script>
+// ── SUPABASE AUTH CLIENT ──────────────────────────────────────
+const SB_URL = 'https://ozciknzkolkhcntgsrfa.supabase.co';
+const SB_KEY = 'sb_publishable_5LZuji7cOqKYadq4zD6kMA_xk8jMDs-';
+
+// Patreon config
+const PATREON_CLIENT_ID     = 'mCXIHs0W9Cgihbvw9JKr9T7raIvreNFNfxBGcYQRw_89mryn-S5CDIYVoj_W_KDD';
+const PATREON_REDIRECT_URI  = 'https://strange-new-models.netlify.app/account.html';
+const PATREON_MIN_CENTS     = 500; // $5/month minimum
+
+let currentUser  = null;
+let userProfile  = null;
+let authMode     = 'login';
+let pendingFile  = null;
+
+// ── INIT ──────────────────────────────────────────────────────
+window.addEventListener('load', async () => {
+  // Check for Patreon OAuth callback
+  const urlParams = new URLSearchParams(location.search);
+  const patreonCode = urlParams.get('code');
+  const patreonState = urlParams.get('state');
+  if (patreonCode && patreonState === 'patreon_connect') {
+    await handlePatreonCallback(patreonCode);
+    history.replaceState({}, '', location.pathname);
+  }
+
+  // Check Supabase session
+  await checkSession();
+});
+
+async function checkSession() {
+  try {
+    const res = await fetch(`${SB_URL}/auth/v1/user`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${getToken()}` }
+    });
+    if (res.ok) {
+      currentUser = await res.json();
+      await loadProfile();
+      showAccount();
+    } else {
+      showLoginWall();
+    }
+  } catch(e) {
+    showLoginWall();
+  }
+}
+
+function getToken() {
+  try {
+    const key = Object.keys(localStorage).find(k => k.includes('auth-token'));
+    if (key) return JSON.parse(localStorage.getItem(key))?.access_token || '';
+    // Try Supabase v2 format
+    const session = localStorage.getItem(`sb-${SB_URL.split('//')[1].split('.')[0]}-auth-token`);
+    if (session) return JSON.parse(session)?.access_token || '';
+  } catch(e) {}
+  return '';
+}
+
+function showLoginWall() {
+  document.getElementById('loginWall').style.display = 'block';
+  document.getElementById('accountContent').style.display = 'none';
+}
+
+function showAccount() {
+  document.getElementById('loginWall').style.display = 'none';
+  document.getElementById('accountContent').style.display = 'block';
+  document.getElementById('signOutBtn').style.display = 'inline-flex';
+  loadEarnCredits();
+  loadCreditHistory();
+  loadMyPhotos();
+}
+
+async function loadProfile() {
+  try {
+    const token = getToken();
+    const res = await fetch(`${SB_URL}/rest/v1/profiles?id=eq.${currentUser.id}&select=*`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    userProfile = data[0] || { credits: 0, name: currentUser.email };
+
+    const name = userProfile.name || currentUser.email?.split('@')[0] || 'Captain';
+    document.getElementById('profileName').textContent = name;
+    document.getElementById('profileEmail').textContent = currentUser.email || '';
+    document.getElementById('profileAvatar').textContent = name[0]?.toUpperCase() || '👤';
+    document.getElementById('settingsName').value = name;
+
+    const credits = userProfile.credits || 0;
+    document.getElementById('creditsNum').textContent = credits;
+    document.getElementById('creditsWorth').textContent = `Worth £${(credits / 10).toFixed(2)} off digital files`;
+
+    // Patreon badge
+    updatePatreonBadge();
+  } catch(e) { console.error('Profile load error:', e); }
+}
+
+function updatePatreonBadge() {
+  const badge = document.getElementById('patreonBadge');
+  const status = document.getElementById('patreonStatus');
+  const connectArea = document.getElementById('patreonConnectArea');
+  if (userProfile?.patreon_connected && userProfile?.patreon_amount >= PATREON_MIN_CENTS) {
+    badge.classList.add('connected');
+    status.innerHTML = `<span class="patreon-tier">❤ ${userProfile.patreon_tier || 'Ensign'} Patron</span><div class="patreon-discount">✅ 50% off all digital files active</div>`;
+    if (connectArea) connectArea.innerHTML = '<div style="color:var(--green);font-size:0.82rem">✅ Patreon connected — 50% discount active</div>';
+  } else if (userProfile?.patreon_connected) {
+    badge.classList.add('connected');
+    status.innerHTML = `<span style="color:var(--dim)">Patreon connected (tier below $5)</span>`;
+  } else {
+    status.innerHTML = '<a style="color:var(--patreon);cursor:pointer;font-size:0.78rem" onclick="showTab(\'settings\')">Connect Patreon for 50% off →</a>';
+  }
+}
+
+// ── TABS ──────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ── AUTH ──────────────────────────────────────────────────────
+function showAuthModal(mode) {
+  authMode = mode;
+  document.getElementById('authModal').style.display = 'flex';
+  updateAuthMode();
+}
+function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+function toggleAuthMode() { authMode = authMode === 'login' ? 'register' : 'login'; updateAuthMode(); }
+function updateAuthMode() {
+  const isReg = authMode === 'register';
+  document.getElementById('authTitle').textContent     = isReg ? 'Create Account' : 'Log In';
+  document.getElementById('authSubmitBtn').textContent = isReg ? 'Create Account' : 'Log In';
+  document.getElementById('authNameField').style.display = isReg ? 'block' : 'none';
+  document.getElementById('authTerms').style.display     = isReg ? 'block' : 'none';
+  document.getElementById('authSwitch').innerHTML = isReg
+    ? 'Already have an account? <a style="color:var(--accent);cursor:pointer" onclick="toggleAuthMode()">Log in</a>'
+    : 'Don\'t have an account? <a style="color:var(--accent);cursor:pointer" onclick="toggleAuthMode()">Create one free</a>';
+}
+
+async function submitAuth() {
+  const email    = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const name     = document.getElementById('authName').value.trim();
+  const errEl    = document.getElementById('authError');
+  errEl.textContent = '';
+
+  if (!email || !password) { errEl.textContent = 'Please fill in all fields'; return; }
+
+  const endpoint = authMode === 'register' ? 'signup' : 'token?grant_type=password';
+  const body = authMode === 'register'
+    ? { email, password, data: { name } }
+    : { email, password };
+
+  try {
+    const res = await fetch(`${SB_URL}/auth/v1/${endpoint}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error_description || data.msg || 'Authentication failed'; return; }
+
+    // Store token
+    if (data.access_token) {
+      const storageKey = `sb-ozciknzkolkhcntgsrfa-auth-token`;
+      localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+    currentUser = data.user || data;
+    closeAuthModal();
+    await loadProfile();
+    showAccount();
+    showToast(authMode === 'register' ? '🎉 Account created! You have 5 free credits.' : '✅ Welcome back!');
+  } catch(e) {
+    errEl.textContent = 'Connection error. Please try again.';
+  }
+}
+
+async function signOut() {
+  try {
+    await fetch(`${SB_URL}/auth/v1/logout`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${getToken()}` }
+    });
+  } catch(e) {}
+  // Clear storage
+  Object.keys(localStorage).forEach(k => { if (k.includes('auth-token') || k.includes('supabase')) localStorage.removeItem(k); });
+  currentUser = null; userProfile = null;
+  document.getElementById('signOutBtn').style.display = 'none';
+  showLoginWall();
+  showToast('Signed out');
+}
+
+// ── EARN CREDITS ──────────────────────────────────────────────
+const SOCIAL_ACTIONS = [
+  { action:'account_created',   title:'Account Created',            sub:'Welcome bonus',                       credits:5,   icon:'🎉', auto:true },
+  { action:'youtube_follow',    title:'Subscribe on YouTube',       sub:'Star Trek Model Maker channel',       credits:15,  icon:'📺', url:'https://www.youtube.com/@startrekmodelmaker4457' },
+  { action:'patreon_support',   title:'Support on Patreon',         sub:'Floor Trek — any tier',               credits:30,  icon:'❤',  url:'https://patreon.com/floortrek' },
+  { action:'facebook_group',    title:'Join Facebook Group',        sub:'Strange New Models — 20k members',    credits:10,  icon:'👥', url:'https://www.facebook.com/groups/1080344266015477' },
+  { action:'facebook_follow',   title:'Follow on Facebook',         sub:'Personal page',                       credits:5,   icon:'📘', url:'https://www.facebook.com/rob.cooter.9' },
+  { action:'tiktok_follow',     title:'Follow on TikTok',           sub:'@robabill',                           credits:10,  icon:'🎵', url:'https://www.tiktok.com/@robabill' },
+  { action:'threads_follow',    title:'Follow on Threads',          sub:'@roba.bill0101',                      credits:10,  icon:'🧵', url:'https://www.threads.com/@roba.bill0101' },
+  { action:'pinterest_follow',  title:'Follow on Pinterest',        sub:'Strange New Models boards',           credits:5,   icon:'📌', url:'https://pin.it/4FYqnGkHw' },
+  { action:'cults3d_follow',    title:'Follow on Cults3D',          sub:'@robabill',                           credits:10,  icon:'🖨', url:'https://cults3d.com/@robabill' },
+];
+
+async function loadEarnCredits() {
+  try {
+    const token = getToken();
+    const res = await fetch(`${SB_URL}/rest/v1/social_claims?user_id=eq.${currentUser.id}&select=action`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}` }
+    });
+    const claimed = await res.json();
+    const claimedSet = new Set(claimed.map(c => c.action));
+
+    const grid = document.getElementById('earnGrid');
+    grid.innerHTML = '';
+
+    // Social actions
+    const socialTitle = document.createElement('div');
+    socialTitle.className = 'earn-section-title';
+    socialTitle.textContent = 'Follow & Support';
+    grid.appendChild(socialTitle);
+
+    SOCIAL_ACTIONS.forEach(item => {
+      if (item.auto) return; // account_created handled separately
+      const isClaimed = claimedSet.has(item.action);
+      const div = document.createElement('div');
+      div.className = 'earn-item' + (isClaimed ? ' claimed' : '');
+      div.innerHTML = `
+        <div class="earn-icon">${item.icon}</div>
+        <div class="earn-info">
+          <div class="earn-title">${item.title}</div>
+          <div class="earn-sub">${item.sub}</div>
+        </div>
+        <div class="earn-credits">+${item.credits}</div>
+        <button class="earn-btn${isClaimed ? '' : ''}"
+          onclick="${isClaimed ? '' : `claimSocial('${item.action}', ${item.credits}, '${item.url}', this)`}"
+          ${isClaimed ? 'disabled' : ''}>
+          ${isClaimed ? '✓ Claimed' : 'Go & Claim'}
+        </button>`;
+      grid.appendChild(div);
+    });
+
+    // Photo upload
+    const photoTitle = document.createElement('div');
+    photoTitle.className = 'earn-section-title';
+    photoTitle.textContent = 'Upload Content';
+    grid.appendChild(photoTitle);
+
+    const photoItem = document.createElement('div');
+    photoItem.className = 'earn-item';
+    photoItem.innerHTML = `
+      <div class="earn-icon">📸</div>
+      <div class="earn-info">
+        <div class="earn-title">Upload a Print Photo</div>
+        <div class="earn-sub">Photo of your finished print — approved by Rob before credits awarded</div>
+      </div>
+      <div class="earn-credits">+10</div>
+      <button class="earn-btn" onclick="showTab('photos');document.querySelectorAll('.sidebar-nav a')[3].classList.add('active')">Upload</button>`;
+    grid.appendChild(photoItem);
+
+    // Purchase credits
+    const purchaseTitle = document.createElement('div');
+    purchaseTitle.className = 'earn-section-title';
+    purchaseTitle.textContent = 'Purchase Credits';
+    grid.appendChild(purchaseTitle);
+
+    const purchaseItem = document.createElement('div');
+    purchaseItem.className = 'earn-item';
+    purchaseItem.innerHTML = `
+      <div class="earn-icon">💳</div>
+      <div class="earn-info">
+        <div class="earn-title">Buy Digital Files</div>
+        <div class="earn-sub">Earn 2 credits per £1 spent on digital downloads</div>
+      </div>
+      <div class="earn-credits">2/£1</div>
+      <a href="catalogue.html" class="earn-btn">Browse Ships</a>`;
+    grid.appendChild(purchaseItem);
+
+  } catch(e) { console.error('loadEarnCredits error:', e); }
+}
+
+async function claimSocial(action, credits, url, btn) {
+  // Open social link
+  window.open(url, '_blank');
+
+  // Change button to "Mark as Done" after 4 seconds
+  btn.textContent = '⏳ Opened…';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = '✓ Mark Done';
+    btn.disabled = false;
+    btn.onclick = () => confirmSocialClaim(action, credits, btn);
+  }, 4000);
+}
+
+async function confirmSocialClaim(action, credits, btn) {
+  try {
+    const token = getToken();
+    // Insert claim
+    const res = await fetch(`${SB_URL}/rest/v1/social_claims`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ user_id: currentUser.id, action, credits })
+    });
+    if (!res.ok) { showToast('Already claimed!', 'var(--accent2)'); return; }
+
+    // Award credits
+    await fetch(`${SB_URL}/rest/v1/profiles?id=eq.${currentUser.id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credits: (userProfile.credits || 0) + credits })
+    });
+
+    // Log transaction
+    await fetch(`${SB_URL}/rest/v1/credit_transactions`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ user_id: currentUser.id, amount: credits, reason: action.replace(/_/g,' ') })
+    });
+
+    userProfile.credits = (userProfile.credits || 0) + credits;
+    document.getElementById('creditsNum').textContent = userProfile.credits;
+    document.getElementById('creditsWorth').textContent = `Worth £${(userProfile.credits / 10).toFixed(2)} off digital files`;
+
+    btn.textContent = '✓ Claimed';
+    btn.disabled = true;
+    btn.closest('.earn-item').classList.add('claimed');
+    showToast(`⭐ +${credits} credits added!`, 'var(--green)');
+  } catch(e) {
+    showToast('Error claiming credits', 'var(--accent2)');
+  }
+}
+
+// ── CREDIT HISTORY ────────────────────────────────────────────
+async function loadCreditHistory() {
+  try {
+    const token = getToken();
+    const res = await fetch(`${SB_URL}/rest/v1/credit_transactions?user_id=eq.${currentUser.id}&order=created_at.desc&limit=50`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    const list = document.getElementById('historyList');
+    if (!data.length) { list.innerHTML = '<div style="color:var(--dim);font-size:0.85rem;padding:20px 0">No transactions yet.</div>'; return; }
+    list.innerHTML = data.map(t => `
+      <div class="history-item">
+        <div>
+          <div class="history-reason">${t.reason}</div>
+          <div class="history-date">${new Date(t.created_at).toLocaleDateString('en-GB')}</div>
+        </div>
+        <div class="history-amount ${t.amount > 0 ? 'positive' : 'negative'}">${t.amount > 0 ? '+' : ''}${t.amount}</div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+// ── COMMUNITY PHOTOS ──────────────────────────────────────────
+let shipSearchResults = [];
+
+async function searchShipsForPhoto(query) {
+  if (query.length < 2) { document.getElementById('shipSearchResults').style.display='none'; return; }
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/ships?name=ilike.*${encodeURIComponent(query)}*&select=id,name&limit=8&active=eq.true`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    const data = await res.json();
+    const resultsEl = document.getElementById('shipSearchResults');
+    if (!data.length) { resultsEl.style.display='none'; return; }
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = data.map(s => `
+      <div style="padding:8px 12px;cursor:pointer;font-size:0.82rem;border-bottom:1px solid var(--border);transition:background 0.1s"
+        onmouseover="this.style.background='rgba(0,184,255,0.06)'" onmouseout="this.style.background=''"
+        onclick="selectShipForPhoto(${s.id},'${s.name.replace(/'/g,"\\'")}')">
+        ${s.name}
+      </div>`).join('');
+  } catch(e) {}
+}
+
+function selectShipForPhoto(id, name) {
+  document.getElementById('selectedShipId').value = id;
+  document.getElementById('selectedShipName').textContent = '✓ ' + name;
+  document.getElementById('photoShipSearch').value = name;
+  document.getElementById('shipSearchResults').style.display = 'none';
+}
+
+function handlePhotoUpload(file) {
+  if (!file) return;
+  pendingFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('previewImg').src = e.target.result;
+    document.getElementById('uploadPreview').style.display = 'block';
+    document.getElementById('uploadZone').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function cancelUpload() {
+  pendingFile = null;
+  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById('uploadZone').style.display = 'block';
+}
+
+async function submitPhoto() {
+  const shipId = document.getElementById('selectedShipId').value;
+  const caption = document.getElementById('photoCaption').value;
+  if (!shipId) { showToast('Please select which ship this is', 'var(--accent2)'); return; }
+  if (!pendingFile) { showToast('Please choose a photo', 'var(--accent2)'); return; }
+  if (!currentUser) { showToast('Please log in first', 'var(--accent2)'); return; }
+
+  showToast('Uploading…');
+
+  try {
+    // Upload to Supabase Storage
+    const token = getToken();
+    const fileName = `${currentUser.id}/${Date.now()}_${pendingFile.name}`;
+    const uploadRes = await fetch(`${SB_URL}/storage/v1/object/community-photos/${fileName}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': pendingFile.type },
+      body: pendingFile
+    });
+
+    let imageUrl = '';
+    if (uploadRes.ok) {
+      imageUrl = `${SB_URL}/storage/v1/object/public/community-photos/${fileName}`;
+    } else {
+      // Fallback: store as base64 URL (for demo)
+      imageUrl = document.getElementById('previewImg').src;
+    }
+
+    // Insert record
+    await fetch(`${SB_URL}/rest/v1/community_photos`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ ship_id: parseInt(shipId), user_id: currentUser.id, image_url: imageUrl, caption, status: 'pending' })
+    });
+
+    showToast('📸 Photo submitted! Rob will review it shortly.', 'var(--green)');
+    cancelUpload();
+    loadMyPhotos();
+  } catch(e) {
+    showToast('Upload failed. Please try again.', 'var(--accent2)');
+    console.error(e);
+  }
+}
+
+async function loadMyPhotos() {
+  try {
+    const token = getToken();
+    const res = await fetch(`${SB_URL}/rest/v1/community_photos?user_id=eq.${currentUser.id}&order=created_at.desc&select=*`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    const grid = document.getElementById('myPhotos');
+    if (!data.length) { grid.innerHTML = '<div style="color:var(--dim);font-size:0.82rem;grid-column:1/-1">No photos submitted yet.</div>'; return; }
+    grid.innerHTML = data.map(p => `
+      <div class="photo-card">
+        <img src="${p.image_url}" alt="Community photo">
+        <span class="photo-status ${p.status}">${p.status}</span>
+        <div class="photo-caption">${p.caption || 'No caption'}</div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+// ── PATREON OAUTH ─────────────────────────────────────────────
+function connectPatreon() {
+  const state = 'patreon_connect';
+  const scope = encodeURIComponent('identity identity[email] identity.memberships');
+  const url = `https://www.patreon.com/oauth2/authorize?response_type=code&client_id=${PATREON_CLIENT_ID}&redirect_uri=${encodeURIComponent(PATREON_REDIRECT_URI)}&scope=${scope}&state=${state}`;
+  window.location.href = url;
+}
+
+async function handlePatreonCallback(code) {
+  showToast('Verifying Patreon…');
+  try {
+    // Exchange code via Netlify Function (we'll create this)
+    const res = await fetch('/.netlify/functions/patreon-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, userId: currentUser?.id })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      userProfile.patreon_connected = true;
+      userProfile.patreon_amount = data.amount_cents;
+      userProfile.patreon_tier = data.tier;
+      updatePatreonBadge();
+      if (data.amount_cents >= PATREON_MIN_CENTS) {
+        showToast('❤ Patreon connected! 50% discount activated.', 'var(--patreon)');
+      } else {
+        showToast('Patreon connected. Upgrade to $5+ tier for 50% discount.', 'var(--gold)');
+      }
+    } else {
+      showToast('Patreon verification failed. Try again.', 'var(--accent2)');
+    }
+  } catch(e) {
+    showToast('Could not verify Patreon. Try again later.', 'var(--accent2)');
+    console.error(e);
+  }
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────
+async function saveSettings() {
+  const name = document.getElementById('settingsName').value.trim();
+  if (!name) { showToast('Please enter a name', 'var(--accent2)'); return; }
+  try {
+    const token = getToken();
+    await fetch(`${SB_URL}/rest/v1/profiles?id=eq.${currentUser.id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    userProfile.name = name;
+    document.getElementById('profileName').textContent = name;
+    showToast('✅ Settings saved', 'var(--green)');
+  } catch(e) { showToast('Save failed', 'var(--accent2)'); }
+}
+
+function confirmDeleteAccount() {
+  if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+    showToast('Account deletion — please email robbybelboah@msn.com to complete this.', 'var(--accent2)');
+  }
+}
+
+// ── SPEND CREDITS ─────────────────────────────────────────────
+async function redeemCredits(cost, reward) {
+  if (!userProfile) return;
+  const bal = userProfile.credits || 0;
+  if (bal < cost) { showToast(`Not enough credits. You have ${bal}, need ${cost}.`, 'var(--accent2)'); return; }
+  if (!confirm(`Redeem ${cost} credits for "${reward}"? A voucher will be emailed to you.`)) return;
+  try {
+    const token = getToken();
+    const newBal = bal - cost;
+    await fetch(`${SB_URL}/rest/v1/profiles?id=eq.${currentUser.id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credits: newBal })
+    });
+    await fetch(`${SB_URL}/rest/v1/credit_transactions`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ user_id: currentUser.id, amount: -cost, reason: `Redeemed: ${reward}` })
+    });
+    userProfile.credits = newBal;
+    document.getElementById('creditsNum').textContent = newBal;
+    document.getElementById('creditsWorth').textContent = `Worth £${(newBal / 10).toFixed(2)} off digital files`;
+    showToast(`🎁 "${reward}" redeemed! Voucher being sent to your email.`, 'var(--green)');
+    loadCreditHistory();
+  } catch(e) { showToast('Redemption failed', 'var(--accent2)'); }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.color = color || 'var(--accent)';
+  t.style.borderColor = color || 'var(--accent)';
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

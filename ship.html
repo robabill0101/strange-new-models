@@ -332,6 +332,7 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
 </a>
 <div class="toast" id="toast"></div>
 
+<script src="supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ── SHIP DATA (from URL param, later from Supabase) ───────────
@@ -516,8 +517,8 @@ function parseSTL(buffer) {
 
 function changeBg(hex) { if (threeScene) threeScene.background = new THREE.Color(hex); }
 
-// Init 3D on load
-window.addEventListener('load', () => { initThree(); });
+// Init — load ship data then start 3D
+window.addEventListener('load', () => { loadShip(); initThree(); });
 
 // ── LIKE ──────────────────────────────────────────────────────
 let liked = JSON.parse(localStorage.getItem('likedShips')||'[]').includes(shipId);
@@ -531,7 +532,7 @@ function updateLikeBtn() {
 }
 updateLikeBtn();
 
-function toggleLike() {
+async function toggleLike() {
   const stored = JSON.parse(localStorage.getItem('likedShips')||'[]');
   if (liked) {
     stored.splice(stored.indexOf(shipId),1);
@@ -541,6 +542,7 @@ function toggleLike() {
     stored.push(shipId);
     liked = true;
     showToast('❤ Added to likes!');
+    likeShip(shipId).catch(()=>{});
   }
   localStorage.setItem('likedShips', JSON.stringify(stored));
   updateLikeBtn();
@@ -570,18 +572,7 @@ function addToWishlist() {
   showToast('⭐ Added to wishlist! (Log in to save permanently)');
 }
 
-// ── RELATED ───────────────────────────────────────────────────
-const related = Object.entries(SHIPS)
-  .filter(([id]) => parseInt(id) !== shipId)
-  .slice(0, 6);
-document.getElementById('relatedGrid').innerHTML = related.map(([id, s]) => `
-  <a href="ship.html?id=${id}" class="related-card">
-    <div class="related-card-img">🚀</div>
-    <div class="related-card-info">
-      <div class="related-card-name">${s.name}</div>
-      <div class="related-card-price">£${s.name.toUpperCase().includes('KIT')?70:s.price}</div>
-    </div>
-  </a>`).join('');
+// Related ships loaded by loadRelated() above
 
 // ── TOAST ─────────────────────────────────────────────────────
 function showToast(msg) {

@@ -314,11 +314,7 @@ let likedShips  = JSON.parse(localStorage.getItem('likedShips')  || '[]');
 let activeFilter = 'all';
 let activeSearch = '';
 
-function getPrice(ship) {
-  if (ship.name.toUpperCase().includes('KIT'))    return 70;
-  if (ship.name.toLowerCase().includes('athena')) return 25;
-  return ship.price || 12;
-}
+// getPrice defined in supabase.js
 
 function renderShips(ships) {
   const grid = document.getElementById('shipGrid');
@@ -328,16 +324,16 @@ function renderShips(ships) {
   grid.innerHTML = ships.map(ship => {
     const price    = getPrice(ship);
     const liked    = likedShips.includes(ship.id);
-    const badge    = ship.isKit  ? '<span class="ship-card-badge badge-kit">KIT</span>' :
-                     ship.isNew  ? '<span class="ship-card-badge badge-new">NEW</span>' :
-                     ship.isSale ? '<span class="ship-card-badge badge-sale">SALE</span>' : '';
-    const priceHtml = ship.isSale
-      ? `<span class="old-price">£${price}</span>£${ship.salePrice}`
+    const badge    = ship.is_kit  ? '<span class="ship-card-badge badge-kit">KIT</span>' :
+                     ship.is_new  ? '<span class="ship-card-badge badge-new">NEW</span>' :
+                     ship.is_sale ? '<span class="ship-card-badge badge-sale">SALE</span>' : '';
+    const priceHtml = ship.is_sale && ship.sale_price
+      ? `<span class="old-price">£${price}</span>£${ship.sale_price}`
       : `£${price}`;
     return `
       <div class="ship-card" onclick="window.location.href='ship.html?id=${ship.id}'">
         <div class="ship-card-img">
-          <div class="ship-card-img-placeholder">🚀</div>
+          ${ship.image_url ? `<img src="${ship.image_url}" alt="${ship.name}" style="width:100%;height:100%;object-fit:cover">` : '<div class="ship-card-img-placeholder">🚀</div>'}
           ${badge}
         </div>
         <div class="ship-card-body">
@@ -364,19 +360,22 @@ function renderShips(ships) {
   }).join('');
 }
 
-function toggleLike(id, btn) {
+async function toggleLike(id, btn) {
   const idx = likedShips.indexOf(id);
-  const ship = DEMO_SHIPS.find(s => s.id === id);
-  const countEl = document.getElementById('likes-'+id);
+  const ship = ALL_SHIPS.find(s => s.id === id);
+  if (!ship) return;
   if (idx === -1) {
     likedShips.push(id);
+    ship.likes = (ship.likes||0) + 1;
     btn.classList.add('liked');
-    btn.innerHTML = `❤ <span class="like-count" id="likes-${id}">${++ship.likes}</span>`;
+    btn.innerHTML = `❤ <span class="like-count" id="likes-${id}">${ship.likes}</span>`;
     showToast('❤ Liked!');
+    likeShip(id).catch(()=>{});
   } else {
     likedShips.splice(idx,1);
+    ship.likes = Math.max(0, (ship.likes||1) - 1);
     btn.classList.remove('liked');
-    btn.innerHTML = `🤍 <span class="like-count" id="likes-${id}">${--ship.likes}</span>`;
+    btn.innerHTML = `🤍 <span class="like-count" id="likes-${id}">${ship.likes}</span>`;
   }
   localStorage.setItem('likedShips', JSON.stringify(likedShips));
 }
@@ -406,13 +405,13 @@ function setFilter(f, btn) {
 }
 
 function filterShips() {
-  activeSearch = document.getElementById('searchInput').value.toLowerCase();
-  let ships = DEMO_SHIPS.filter(s => {
+  activeSearch = (document.getElementById('searchInput').value || '').toLowerCase();
+  const urlCat = new URLSearchParams(location.search).get('cat');
+  let ships = ALL_SHIPS.filter(s => {
     if (activeSearch && !s.name.toLowerCase().includes(activeSearch)) return false;
-    if (activeFilter === 'new'  && !s.isNew)  return false;
-    if (activeFilter === 'sale' && !s.isSale) return false;
-    if (activeFilter === 'kit'  && !s.isKit)  return false;
-    const urlCat = new URLSearchParams(location.search).get('cat');
+    if (activeFilter === 'new'  && !s.is_new)  return false;
+    if (activeFilter === 'sale' && !s.is_sale) return false;
+    if (activeFilter === 'kit'  && !s.is_kit)  return false;
     if (urlCat && urlCat !== 'all' && s.faction !== urlCat) return false;
     return true;
   });
@@ -420,7 +419,7 @@ function filterShips() {
 }
 
 function sortShips(by) {
-  DEMO_SHIPS.sort((a,b) => {
+  ALL_SHIPS.sort((a,b) => {
     if (by==='name')       return a.name.localeCompare(b.name);
     if (by==='name-z')     return b.name.localeCompare(a.name);
     if (by==='price-asc')  return getPrice(a)-getPrice(b);
@@ -447,13 +446,13 @@ if (cat && cat !== 'all') {
   document.getElementById('breadcrumbCat').textContent = cat;
   document.getElementById('pageDesc').textContent = `Browse all ${cat} 3D print files`;
   document.querySelectorAll('.sidebar-links a').forEach(a => {
-    const href = a.getAttribute('href');
-    a.classList.toggle('active', href && href.includes('cat='+cat));
-    if (!href || !href.includes('cat='+cat)) a.classList.remove('active');
+    const href = a.getAttribute('href') || '';
+    a.classList.toggle('active', href.includes('cat='+encodeURIComponent(cat)));
   });
 }
 
-filterShips();
+// Load live ships from Supabase
+loadShips();
 </script>
 </body>
 </html>

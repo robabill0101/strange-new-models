@@ -776,11 +776,29 @@ footer {
       </div>
       <span class="cat-card-arrow">→</span>
     </a>
-    <a href="catalogue.html?cat=Other+Aliens" class="cat-card">
-      <div class="cat-card-bg">👾</div>
+    <a href="catalogue.html?cat=Cardassians" class="cat-card">
+      <div class="cat-card-bg">🐍</div>
       <div class="cat-card-overlay"></div>
       <div class="cat-card-info">
-        <span class="cat-card-name">Other Aliens</span>
+        <span class="cat-card-name">Cardassians</span>
+        <span class="cat-card-count">Loading…</span>
+      </div>
+      <span class="cat-card-arrow">→</span>
+    </a>
+    <a href="catalogue.html?cat=Ferengi" class="cat-card">
+      <div class="cat-card-bg">💰</div>
+      <div class="cat-card-overlay"></div>
+      <div class="cat-card-info">
+        <span class="cat-card-name">Ferengi</span>
+        <span class="cat-card-count">Loading…</span>
+      </div>
+      <span class="cat-card-arrow">→</span>
+    </a>
+    <a href="catalogue.html?cat=Shuttles" class="cat-card">
+      <div class="cat-card-bg">🚀</div>
+      <div class="cat-card-overlay"></div>
+      <div class="cat-card-info">
+        <span class="cat-card-name">Shuttles</span>
         <span class="cat-card-count">Loading…</span>
       </div>
       <span class="cat-card-arrow">→</span>
@@ -911,7 +929,7 @@ footer {
     </div>
     <div class="footer-bottom">
       <p>© 2026 Strange New Models · Rob Belboah · All original designs · Not affiliated with Paramount or CBS</p>
-      <p style="color:var(--dim2)">Contact: robbybelboah@msn.com · <a href="https://www.facebook.com/rob.cooter.9" target="_blank" style="color:var(--accent)">Facebook</a></p>
+      <p style="color:var(--dim2)">Contact: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="06746964647f64636a6469676e466b75682865696b">[email&#160;protected]</a> · <a href="https://www.facebook.com/rob.cooter.9" target="_blank" style="color:var(--accent)">Facebook</a></p>
     </div>
   </div>
 </footer>
@@ -973,7 +991,7 @@ footer {
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── MODAL ──────────────────────────────────────────────────────
 function showModal(type) {
   document.getElementById('loginModal').classList.add('show');
@@ -1017,8 +1035,30 @@ function showToast(msg, duration = 3000) {
   setTimeout(() => t.classList.remove('show'), duration);
 }
 
-// ── KEYBOARD ESC ──────────────────────────────────────────────
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+// ── KEYBOARD ESC ──────�
+<script src="supabase.js"></script>
+<script>
+async function loadFactionCounts() {
+  try {
+    const ships = await sbFetch('ships?select=faction&active=eq.true&limit=2000');
+    const counts = {};
+    ships.forEach(s => { counts[s.faction] = (counts[s.faction]||0)+1; });
+    document.querySelectorAll('.cat-card-count').forEach(el => {
+      const card = el.closest('.cat-card');
+      const href = card ? (card.getAttribute('href')||'') : '';
+      const match = href.match(/cat=([^&"]+)/);
+      if (match) {
+        const faction = decodeURIComponent(match[1]);
+        const count = counts[faction];
+        if (count !== undefined) el.textContent = count + ' ship' + (count !== 1 ? 's' : '');
+      }
+    });
+    const total = Object.values(counts).reduce((a,b)=>a+b,0);
+    const statEl = document.getElementById('statShips');
+    if (statEl) statEl.textContent = total + '+';
+  } catch(e) { console.warn('Could not load counts', e); }
+}
+loadFactionCounts();
 </script>
 </body>
 </html>
