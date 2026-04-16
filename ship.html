@@ -339,10 +339,6 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="supabase.js"></script>
 <script>
-if (typeof SUPABASE_URL === 'undefined') {
-  var SUPABASE_URL = 'https://ozciknzkolkhcntgsrfa.supabase.co';
-  var SUPABASE_KEY = 'sb_publishable_5LZuji7cOqKYadq4zD6kMA_xk8jMDs-';
-}
 // ── SHIP DATA (from URL param, later from Supabase) ───────────
 const params = new URLSearchParams(location.search);
 const shipId = parseInt(params.get('id')) || 1;
