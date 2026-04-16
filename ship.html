@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ship — Strange New Models</title>
-<script src="supabase.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -338,7 +337,12 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="supabase.js"></script>
 <script>
+if (typeof SUPABASE_URL === 'undefined') {
+  var SUPABASE_URL = 'https://ozciknzkolkhcntgsrfa.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_5LZuji7cOqKYadq4zD6kMA_xk8jMDs-';
+}
 // ── SHIP DATA (from URL param, later from Supabase) ───────────
 const params = new URLSearchParams(location.search);
 const shipId = parseInt(params.get('id')) || 1;
@@ -363,6 +367,8 @@ async function loadShip() {
     document.getElementById('breadFaction').href         = 'catalogue.html?cat=' + (ship.faction||'');
     document.getElementById('breadName').textContent     = ship.name;
     document.getElementById('metaLikes').textContent     = ship.likes || 0;
+    likeCount = ship.likes || 0;
+    updateLikeBtn();
     document.getElementById('metaDownloads').textContent = ship.downloads || 0;
     document.getElementById('metaAdded').textContent     = ship.created_at ? new Date(ship.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : 'Apr 2026';
     document.getElementById('shipPrice').textContent     = '£' + price;
@@ -389,7 +395,7 @@ async function loadShip() {
         const thumb = document.createElement('div');
         thumb.className = 'angle-thumb';
         thumb.title = labels[i];
-        thumb.innerHTML = '<img src="' + url + '" alt="' + labels[i] + '" onerror="this.parentElement.style.display='none'">';
+        thumb.innerHTML = '<img src="' + url + '" alt="' + labels[i] + '">';
         thumb.addEventListener('click', () => {
           const rh = document.getElementById('rendersHero'); if(rh) rh.src = url;
         });
@@ -577,7 +583,7 @@ window.addEventListener('load', () => { loadShip(); initThree(); });
 
 // ── LIKE ──────────────────────────────────────────────────────
 let liked = JSON.parse(localStorage.getItem('likedShips')||'[]').includes(shipId);
-let likeCount = ship.likes;
+let likeCount = 0;
 
 function updateLikeBtn() {
   const btn = document.getElementById('likeBtn');
@@ -585,7 +591,7 @@ function updateLikeBtn() {
   btn.classList.toggle('liked', liked);
   document.getElementById('metaLikes').textContent = likeCount + (liked?1:0);
 }
-updateLikeBtn();
+// updateLikeBtn called after ship loads
 
 async function toggleLike() {
   const stored = JSON.parse(localStorage.getItem('likedShips')||'[]');
