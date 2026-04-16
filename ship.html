@@ -81,10 +81,11 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
 /* Angle gallery */
 .angle-gallery { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:24px; }
 .angle-thumb {
-  aspect-ratio:1; background:var(--panel); border:1px solid var(--border); border-radius:2px;
+  aspect-ratio:16/9; background:var(--panel); border:1px solid var(--border); border-radius:2px;
   overflow:hidden; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; justify-content:center; color:var(--dim2);
 }
-.angle-thumb:hover { border-color:var(--accent); }
+.angle-thumb:hover { border-color:var(--accent); box-shadow:0 0 8px rgba(0,184,255,0.3); }
+.angle-thumb.active-thumb { border-color:var(--accent); }
 .angle-thumb img { width:100%; height:100%; object-fit:cover; }
 
 /* Video embed */
@@ -208,13 +209,13 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
     <div class="ship-previews">
       <div class="preview-main">
         <div class="preview-tabs">
-          <button class="preview-tab active" onclick="switchTab('3d',this)">🔄 3D Preview</button>
           <button class="preview-tab" onclick="switchTab('renders',this)">🖼 Renders</button>
-          <button class="preview-tab" onclick="switchTab('video',this)">▶ Rotation Video</button>
+          <button class="preview-tab active" onclick="switchTab('3d',this)">🔄 3D Preview</button>
+          <button class="preview-tab" onclick="switchTab('video',this)">▶ YouTube</button>
         </div>
 
         <!-- 3D Interactive -->
-        <div class="preview-content active" id="tab3d">
+        <div class="preview-content" id="tab3d">
           <div style="position:relative">
             <canvas id="previewCanvas3D"></canvas>
             <img id="heroImage" src="" alt="" style="display:none">
@@ -232,11 +233,11 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
         </div>
 
         <!-- Renders grid -->
-        <div class="preview-content" id="tabRenders">
-          <div style="background:#000;aspect-ratio:16/9;overflow:hidden;display:flex;align-items:center;justify-content:center">
-            <img id="rendersHero" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain">
+        <div class="preview-content active" id="tabRenders">
+          <div style="background:#040c1a;aspect-ratio:16/9;overflow:hidden;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border)">
+            <img id="rendersHero" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain;display:block">
           </div>
-          <div class="angle-gallery" style="padding:16px;gap:10px;grid-template-columns:repeat(4,1fr)">
+          <div style="padding:12px 16px;display:grid;grid-template-columns:repeat(8,1fr);gap:6px" id="rendersThumbGrid">
             <!-- Populated by JS -->
           </div>
         </div>
@@ -244,10 +245,10 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
         <!-- Video -->
         <div class="preview-content" id="tabVideo">
           <div class="video-wrap">
-            <div class="video-placeholder">
+            <div class="video-placeholder" id="videoPlaceholder">
               <div style="font-size:3rem">▶</div>
-              <p style="font-size:0.85rem">Rotation video for this ship</p>
-              <a href="https://www.youtube.com/@startrekmodelmaker4457" target="_blank" class="btn btn-outline" style="font-size:0.7rem;margin-top:8px">View on YouTube</a>
+              <p style="font-size:0.85rem">No YouTube video linked yet</p>
+              <a href="https://www.youtube.com/@startrekmodelmaker4457" target="_blank" class="btn btn-outline" style="font-size:0.7rem;margin-top:8px">Star Trek Model Maker Channel →</a>
             </div>
           </div>
         </div>
@@ -377,7 +378,7 @@ async function loadShip() {
     document.getElementById('sharePIN').href = 'https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(shareUrl) + '&description=' + encodeURIComponent(ship.name);
 
     // ── RENDERS TAB ─────────────────────────────────────────────
-    const gallery = document.querySelector('#tabRenders .angle-gallery');
+    const gallery = document.getElementById('rendersThumbGrid');
     if (ship.image_url) {
       // Derive all 8 angle URLs from the hero image_url
       // hero URL pattern: ship-images/slug_hero.jpg
@@ -394,6 +395,8 @@ async function loadShip() {
         thumb.innerHTML = '<img src="' + url + '" alt="' + labels[i] + '">';
         thumb.addEventListener('click', () => {
           const rh = document.getElementById('rendersHero'); if(rh) rh.src = url;
+          document.querySelectorAll('.angle-thumb').forEach(t => t.classList.remove('active-thumb'));
+          thumb.classList.add('active-thumb');
         });
         gallery.appendChild(thumb);
         // Set hero image as main preview
