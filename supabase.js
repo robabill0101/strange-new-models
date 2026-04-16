@@ -36,7 +36,7 @@ async function sbPost(endpoint, data) {
 
 // ── Price helper ──────────────────────────────────────────────
 function getPrice(ship) {
-  if (ship.name && ship.name.toUpperCase().includes('KIT')) return 70;
+  if (ship.name && /\bKIT\b/.test(ship.name)) return 70;
   if (ship.name && ship.name.toLowerCase().includes('athena')) return 25;
   return parseFloat(ship.price) || 12;
 }

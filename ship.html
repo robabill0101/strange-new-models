@@ -200,7 +200,7 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
 
 <div class="ship-page">
   <div class="breadcrumb">
-    <a href="index.html">Home</a> › <a href="catalogue.html">Catalogue</a> › <a href="catalogue.html?cat=Klingons" id="breadFaction">Klingons</a> › <span id="breadName">Loading…</span>
+    <a href="index.html">Home</a> › <a href="catalogue.html">Catalogue</a> › <a href="catalogue.html" id="breadFaction">…</a> › <span id="breadName">Loading…</span>
   </div>
 
   <div class="ship-layout">
@@ -218,6 +218,7 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
         <div class="preview-content active" id="tab3d">
           <div style="position:relative">
             <canvas id="previewCanvas3D"></canvas>
+            <img id="heroImage" src="" alt="" style="display:none">
             <div class="canvas-hint" id="canvasHint">Drag to rotate · Scroll to zoom</div>
           </div>
           <div style="padding:12px 16px;display:flex;gap:10px;border-top:1px solid var(--border);flex-wrap:wrap;align-items:center">
@@ -233,7 +234,10 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
 
         <!-- Renders grid -->
         <div class="preview-content" id="tabRenders">
-          <div class="angle-gallery" style="padding:16px;gap:10px;grid-template-columns:repeat(5,1fr)">
+          <div style="background:#000;aspect-ratio:16/9;overflow:hidden;display:flex;align-items:center;justify-content:center">
+            <img id="rendersHero" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain">
+          </div>
+          <div class="angle-gallery" style="padding:16px;gap:10px;grid-template-columns:repeat(4,1fr)">
             <!-- Populated by JS -->
           </div>
         </div>
@@ -339,37 +343,88 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
 const params = new URLSearchParams(location.search);
 const shipId = parseInt(params.get('id')) || 1;
 
-const SHIPS = {
-  1:{ name:'Conny Klingon',               faction:'Klingons', price:12,  likes:24, downloads:156, added:'Apr 2026' },
-  2:{ name:'Kitimar Class',               faction:'Klingons', price:12,  likes:18, downloads:98,  added:'Apr 2026' },
-  3:{ name:'Klingon Neb-tugh',            faction:'Klingons', price:12,  likes:31, downloads:203, added:'Apr 2026' },
-  4:{ name:'Klingon Bird of Prey Abrams', faction:'Klingons', price:12,  likes:55, downloads:412, added:'Mar 2026' },
-  5:{ name:'Klingon D22 Bird of Prey',    faction:'Klingons', price:12,  likes:44, downloads:289, added:'Apr 2026' },
-  6:{ name:'Klingon Battlecruiser KIT',   faction:'Klingons', price:70,  likes:12, downloads:67,  added:'Feb 2026' },
-  10:{ name:'Athena Class',               faction:'Federation', price:25, likes:27, downloads:134, added:'Apr 2026' },
-};
+// ── LOAD SHIP FROM SUPABASE ────────────────────────────────────
+async function loadShip() {
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/ships?id=eq.' + shipId + '&select=*', {
+      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+    });
+    const rows = await res.json();
+    if (!rows.length) { document.getElementById('shipName').textContent = 'Ship not found'; return; }
+    const ship = rows[0];
 
-const ship = SHIPS[shipId] || SHIPS[1];
-const price = ship.name.toUpperCase().includes('KIT') ? 70 : ship.name.toLowerCase().includes('athena') ? 25 : ship.price;
+    const price = /\bKIT\b/.test(ship.name) ? 70
+                : (ship.name||'').toLowerCase().includes('athena') ? 25 : 12;
 
-// Populate page
-document.title = ship.name + ' — Strange New Models';
-document.getElementById('shipName').textContent    = ship.name;
-document.getElementById('shipFaction').textContent = ship.faction;
-document.getElementById('breadFaction').textContent = ship.faction;
-document.getElementById('breadFaction').href        = 'catalogue.html?cat='+ship.faction;
-document.getElementById('breadName').textContent   = ship.name;
-document.getElementById('metaLikes').textContent   = ship.likes;
-document.getElementById('metaDownloads').textContent = ship.downloads;
-document.getElementById('metaAdded').textContent   = ship.added;
-document.getElementById('shipPrice').textContent   = '£'+price;
-document.getElementById('buyPrice').textContent    = '£'+price;
-document.getElementById('orderPrintBtn').href = 'order-print.html?ship='+encodeURIComponent(ship.name);
+    document.title = ship.name + ' — Strange New Models';
+    document.getElementById('shipName').textContent      = ship.name;
+    document.getElementById('shipFaction').textContent   = ship.faction || '';
+    document.getElementById('breadFaction').textContent  = ship.faction || '';
+    document.getElementById('breadFaction').href         = 'catalogue.html?cat=' + (ship.faction||'');
+    document.getElementById('breadName').textContent     = ship.name;
+    document.getElementById('metaLikes').textContent     = ship.likes || 0;
+    document.getElementById('metaDownloads').textContent = ship.downloads || 0;
+    document.getElementById('metaAdded').textContent     = ship.created_at ? new Date(ship.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : 'Apr 2026';
+    document.getElementById('shipPrice').textContent     = '£' + price;
+    document.getElementById('buyPrice').textContent      = '£' + price;
+    document.getElementById('orderPrintBtn').href        = 'order-print.html?ship=' + encodeURIComponent(ship.name);
 
-const shareUrl = location.href;
-document.getElementById('shareFB').href  = 'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(shareUrl);
-document.getElementById('shareWA').href  = 'https://wa.me/?text='+encodeURIComponent(ship.name+' — Strange New Models: '+shareUrl);
-document.getElementById('sharePIN').href = 'https://pinterest.com/pin/create/button/?url='+encodeURIComponent(shareUrl)+'&description='+encodeURIComponent(ship.name);
+    const shareUrl = location.href;
+    document.getElementById('shareFB').href  = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
+    document.getElementById('shareWA').href  = 'https://wa.me/?text=' + encodeURIComponent(ship.name + ' — Strange New Models: ' + shareUrl);
+    document.getElementById('sharePIN').href = 'https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(shareUrl) + '&description=' + encodeURIComponent(ship.name);
+
+    // ── RENDERS TAB ─────────────────────────────────────────────
+    const gallery = document.querySelector('#tabRenders .angle-gallery');
+    if (ship.image_url) {
+      // Derive all 8 angle URLs from the hero image_url
+      // hero URL pattern: ship-images/slug_hero.jpg
+      const base = ship.image_url.replace(/_hero\.jpg$/, '');
+      const angles = ['hero','hero_port','front','rear','starboard','port','top','below'];
+      const labels = ['Hero','Port Hero','Front','Rear','Starboard','Port','Top','Below'];
+      let heroSet = false;
+      gallery.innerHTML = '';
+      angles.forEach((angle, i) => {
+        const url = base + '_' + angle + '.jpg';
+        const thumb = document.createElement('div');
+        thumb.className = 'angle-thumb';
+        thumb.title = labels[i];
+        thumb.innerHTML = '<img src="' + url + '" alt="' + labels[i] + '" onerror="this.parentElement.style.display='none'">';
+        thumb.addEventListener('click', () => {
+          const rh = document.getElementById('rendersHero'); if(rh) rh.src = url;
+        });
+        gallery.appendChild(thumb);
+        // Set hero image as main preview
+        if (!heroSet) {
+          const heroImg = document.getElementById('heroImage');
+          const rh2 = document.getElementById('rendersHero'); if(rh2) rh2.src = url;
+          heroSet = true;
+        }
+      });
+      // Also show hero in 3D tab placeholder while STL loads
+      const rh3 = document.getElementById('rendersHero'); if(rh3) rh3.src = ship.image_url;
+    } else {
+      gallery.innerHTML = '<p style="color:var(--dim);padding:24px;grid-column:1/-1;text-align:center">No renders available yet</p>';
+    }
+
+    // ── 3D TAB — load STL if available ──────────────────────────
+    if (ship.stl_url) {
+      loadSTLFromUrl(ship.stl_url);
+    }
+
+    // ── VIDEO TAB ────────────────────────────────────────────────
+    if (ship.video_url) {
+      const videoWrap = document.querySelector('#tabVideo .video-wrap');
+      const ytId = ship.video_url.match(/(?:v=|youtu\.be\/)([\w-]{11})/);
+      if (ytId) {
+        videoWrap.innerHTML = '<iframe src="https://www.youtube.com/embed/' + ytId[1] + '?autoplay=0" allowfullscreen></iframe>';
+      }
+    }
+
+  } catch(e) {
+    console.error('loadShip error:', e);
+  }
+}
 
 // ── TABS ──────────────────────────────────────────────────────
 function switchTab(id, btn) {

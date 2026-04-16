@@ -301,7 +301,7 @@ const SUPABASE_URL = 'https://ozciknzkolkhcntgsrfa.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_5LZuji7cOqKYadq4zD6kMA_xk8jMDs-';
 
 function getPrice(ship) {
-  if (ship.name && ship.name.toUpperCase().includes('KIT')) return 70;
+  if (ship.name && /\bKIT\b/.test(ship.name)) return 70;
   if (ship.name && ship.name.toLowerCase().includes('athena')) return 25;
   return parseFloat(ship.price) || 12;
 }
