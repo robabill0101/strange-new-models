@@ -210,26 +210,20 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
       <div class="preview-main">
         <div class="preview-tabs">
           <button class="preview-tab active" onclick="switchTab('renders',this)">🖼 Renders</button>
-          <button class="preview-tab" onclick="switchTab('3d',this)">🔄 3D Preview</button>
+          <button class="preview-tab" onclick="switchTab('3d',this)">🔄 360° View</button>
           <button class="preview-tab" onclick="switchTab('video',this)">▶ YouTube</button>
         </div>
 
-        <!-- 3D Interactive -->
+        <!-- 360 Viewer -->
         <div class="preview-content" id="tab3d">
-          <div style="position:relative">
-            <canvas id="previewCanvas3D"></canvas>
-            <img id="heroImage" src="" alt="" style="display:none">
-            <div class="canvas-hint" id="canvasHint">Drag to rotate · Scroll to zoom</div>
+          <div id="viewer360" style="position:relative;background:#040c1a;aspect-ratio:16/9;overflow:hidden;cursor:grab;user-select:none">
+            <img id="viewer360Img" src="" alt="" style="width:100%;height:100%;object-fit:contain;display:block;pointer-events:none">
+            <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:0.7rem;color:var(--dim);background:rgba(0,0,0,0.6);padding:4px 12px;border-radius:10px;font-family:'Orbitron',sans-serif;letter-spacing:0.1em" id="viewer360Hint">← Drag to rotate →</div>
+            <div style="position:absolute;top:12px;right:12px;display:flex;gap:6px">
+              <button onclick="viewer360Play()" id="viewer360PlayBtn" style="background:rgba(0,184,255,0.2);border:1px solid var(--accent);color:var(--accent);font-size:0.65rem;padding:4px 10px;border-radius:2px;cursor:pointer;font-family:'Orbitron',sans-serif">▶ AUTO</button>
+            </div>
           </div>
-          <div style="padding:12px 16px;display:flex;gap:10px;border-top:1px solid var(--border);flex-wrap:wrap;align-items:center">
-            <span style="font-size:0.75rem;color:var(--dim)">Upload your STL to preview:</span>
-            <input type="file" id="stlUpload" accept=".stl" onchange="loadSTL(this.files[0])" style="font-size:0.75rem;color:var(--dim)">
-            <select id="bgSelect" onchange="changeBg(this.value)" style="background:var(--panel);border:1px solid var(--border);color:var(--dim);font-size:0.75rem;padding:4px 8px;border-radius:2px">
-              <option value="#040c1a">Deep Space</option>
-              <option value="#111111">Studio Black</option>
-              <option value="#0a1830">Nebula</option>
-            </select>
-          </div>
+          <div style="padding:10px 16px;display:grid;grid-template-columns:repeat(8,1fr);gap:6px" id="viewer360Thumbs"></div>
         </div>
 
         <!-- Renders grid -->
@@ -337,7 +331,7 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
 </a>
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Three.js removed - using 360 image viewer instead -->
 <script src="supabase.js"></script>
 <script>
 // ── SHIP DATA (from URL param, later from Supabase) ───────────
@@ -412,9 +406,11 @@ async function loadShip() {
       gallery.innerHTML = '<p style="color:var(--dim);padding:24px;grid-column:1/-1;text-align:center">No renders available yet</p>';
     }
 
-    // ── 3D TAB — load STL if available ──────────────────────────
-    if (ship.stl_url) {
-      loadSTLFromUrl(ship.stl_url);
+    // ── 360° VIEWER — init with angle images ─────────────────
+    if (ship.image_url) {
+      const base360 = ship.image_url.replace(/_hero\.jpg$/, '');
+      const angles360 = ['hero','hero_port','front','rear','starboard','port','top','below'].map(a => base360 + '_' + a + '.jpg');
+      viewer360Init(angles360);
     }
 
     // ── VIDEO TAB ────────────────────────────────────────────────
@@ -437,7 +433,305 @@ function switchTab(id, btn) {
   document.querySelectorAll('.preview-content').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('active');
-  if (id === '3d') initThree();
+  // 360 viewer initialised by loadShip
+}
+
+// ── THREE.JS 3D PREVIEW ───────────────────────────────────────
+let threeReady = false, threeScene, threeRenderer, threeCamera, threeMesh, threeAnim;
+let isDragging = false, prevMouse = {x:0,y:0};
+
+function initThree() {
+  if (threeReady) return;
+  threeReady = true;
+
+  const canvas = document.getElementById('previewCanvas3D');
+  const W = canvas.offsetWidth, H = Math.round(W * 9/16);
+  canvas.width = W; canvas.height = H;
+
+  threeRenderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+  threeRenderer.setSize(W, H);
+  threeRenderer.shadowMap.enabled = true;
+  threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+  threeRenderer.toneMappingExposure = 1.2;
+
+  threeScene = new THREE.Scene();
+  threeScene.background = new THREE.Color(0x040c1a);
+
+  // Grid
+  const grid = new THREE.GridHelper(200, 40, 0x1a3355, 0x0f2240);
+  threeScene.add(grid);
+
+  // Lights
+  threeScene.add(new THREE.AmbientLight(0x334466, 1.2));
+  const key = new THREE.DirectionalLight(0xffffff, 2.0);
+  key.position.set(5,8,5); threeScene.add(key);
+  const fill = new THREE.DirectionalLight(0x6699cc, 0.6);
+  fill.position.set(-5,2,-3); threeScene.add(fill);
+  const rim = new THREE.DirectionalLight(0x00aaff, 0.8);
+  rim.position.set(0,-3,-8); threeScene.add(rim);
+
+  // Demo sphere as placeholder (replace with actual STL)
+  const geo = new THREE.SphereGeometry(1, 32, 32);
+  const mat = new THREE.MeshStandardMaterial({ color:0xaabbd0, metalness:0.3, roughness:0.55 });
+  threeMesh = new THREE.Mesh(geo, mat);
+  threeScene.add(threeMesh);
+
+  threeCamera = new THREE.PerspectiveCamera(35, W/H, 0.1, 10000);
+  threeCamera.position.set(0, 1.5, 5);
+  threeCamera.lookAt(0,0,0);
+
+  // Drag to rotate
+  canvas.addEventListener('mousedown', e => { isDragging=true; prevMouse={x:e.clientX,y:e.clientY}; });
+  window.addEventListener('mouseup',   () => isDragging=false);
+  window.addEventListener('mousemove', e => {
+    if (!isDragging || !threeMesh) return;
+    const dx = e.clientX - prevMouse.x;
+    const dy = e.clientY - prevMouse.y;
+    threeMesh.rotation.y += dx * 0.008;
+    threeMesh.rotation.x += dy * 0.008;
+    prevMouse = {x:e.clientX,y:e.clientY};
+  });
+  // Touch
+  canvas.addEventListener('touchstart', e => { prevMouse={x:e.touches[0].clientX,y:e.touches[0].clientY}; });
+  canvas.addEventListener('touchmove',  e => {
+    if (!threeMesh) return;
+    const dx = e.touches[0].clientX - prevMouse.x;
+    const dy = e.touches[0].clientY - prevMouse.y;
+    threeMesh.rotation.y += dx * 0.01;
+    threeMesh.rotation.x += dy * 0.01;
+    prevMouse = {x:e.touches[0].clientX,y:e.touches[0].clientY};
+    e.preventDefault();
+  }, {passive:false});
+  // Scroll to zoom
+  canvas.addEventListener('wheel', e => {
+    threeCamera.position.multiplyScalar(e.deltaY > 0 ? 1.08 : 0.93);
+    e.preventDefault();
+  }, {passive:false});
+
+  // Animate
+  function animate() {
+    threeAnim = requestAnimationFrame(animate);
+    if (!isDragging && threeMesh) threeMesh.rotation.y += 0.003;
+    threeRenderer.render(threeScene, threeCamera);
+  }
+  animate();
+
+  document.getElementById('canvasHint').style.display = 'block';
+}
+
+function loadSTL(file) {
+  if (!file || !threeReady) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const geo = parseSTL(e.target.result);
+    geo.computeBoundingBox();
+    geo.center();
+    geo.computeBoundingSphere();
+    const r = geo.boundingSphere.radius;
+    if (threeMesh) threeScene.remove(threeMesh);
+    const mat = new THREE.MeshStandardMaterial({ color:0xaabbd0, metalness:0.3, roughness:0.55 });
+    threeMesh = new THREE.Mesh(geo, mat);
+    threeScene.add(threeMesh);
+    threeCamera.position.set(0, r*0.5, r*3.5);
+    threeCamera.lookAt(0,0,0);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseSTL(buffer) {
+  const geo = new THREE.BufferGeometry();
+  const arr  = new Uint8Array(buffer);
+  let isAscii = String.fromCharCode(...arr.slice(0,5)) === 'solid';
+  if (isAscii) {
+    const view = new DataView(buffer);
+    const n = view.getUint32(80,true);
+    isAscii = buffer.byteLength !== 80+4+n*50;
+  }
+  let positions, normals;
+  if (isAscii) {
+    const text = new TextDecoder().decode(buffer);
+    const posArr=[], norArr=[]; let cn=[0,0,1];
+    for (const line of text.split('\n')) {
+      const t=line.trim();
+      if (t.startsWith('facet normal')) { const p=t.split(/\s+/); cn=[+p[2],+p[3],+p[4]]; }
+      else if (t.startsWith('vertex'))  { const p=t.split(/\s+/); posArr.push(+p[1],+p[2],+p[3]); norArr.push(...cn); }
+    }
+    positions=new Float32Array(posArr); normals=new Float32Array(norArr);
+  } else {
+    const view=new DataView(buffer), n=view.getUint32(80,true);
+    positions=new Float32Array(n*9); normals=new Float32Array(n*9);
+    let off=84;
+    for (let i=0;i<n;i++) {
+      const nx=view.getFloat32(off,true),ny=view.getFloat32(off+4,true),nz=view.getFloat32(off+8,true); off+=12;
+      for (let v=0;v<3;v++) { const b=i*9+v*3; positions[b]=view.getFloat32(off,true); positions[b+1]=view.getFloat32(off+4,true); positions[b+2]=view.getFloat32(off+8,true); normals[b]=nx;normals[b+1]=ny;normals[b+2]=nz; off+=12; } off+=2;
+    }
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(positions,3));
+  geo.setAttribute('normal',  new THREE.BufferAttribute(normals,3));
+  return geo;
+}
+
+function changeBg(hex) { if (threeScene) threeScene.background = new THREE.Color(hex); }
+
+// Init — load ship data then start 3D
+window.addEventListener('load', () => { loadShip(); }); // initThree called only when 3D tab clicked
+
+// ── LIKE ──────────────────────────────────────────────────────
+let liked = JSON.parse(localStorage.getItem('likedShips')||'[]').includes(shipId);
+let likeCount = 0;
+
+function updateLikeBtn() {
+  const btn = document.getElementById('likeBtn');
+  btn.innerHTML = liked ? '❤ <span id="likeLabel">Liked</span>' : '🤍 <span id="likeLabel">Like</span>';
+  btn.classList.toggle('liked', liked);
+  document.getElementById('metaLikes').textContent = likeCount + (liked?1:0);
+}
+// updateLikeBtn called after ship loads
+
+async function toggleLike() {
+  const stored = JSON.parse(localStorage.getItem('likedShips')||'[]');
+  if (liked) {
+    stored.splice(stored.indexOf(shipId),1);
+    liked = false;
+    showToast('Like removed');
+  } else {
+    stored.push(shipId);
+    liked = true;
+    showToast('❤ Added to likes!');
+    likeShip(shipId).catch(()=>{});
+  }
+  localStorage.setItem('likedShips', JSON.stringify(stored));
+  updateLikeBtn();
+}
+
+// ── SHARE ─────────────────────────────────────────────────────
+function toggleShare() {
+  document.getElementById('sharePanel').classList.toggle('show');
+}
+function copyLink() {
+  navigator.clipboard.writeText(location.href);
+  showToast('🔗 Link copied!');
+  document.getElementById('sharePanel').classList.remove('show');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('[onclick="toggleShare()"]') && !e.target.closest('#sharePanel'))
+    document.getElementById('sharePanel').classList.remove('show');
+});
+
+// ── BUY ───────────────────────────────────────────────────────
+function buyNow() {
+  // TODO: wire to Stripe checkout session
+  showToast('🛒 Checkout coming soon! (Stripe being set up)');
+}
+
+function addToWishlist() {
+  showToast('⭐ Added to wishlist! (Log in to save permanently)');
+}
+
+// Related ships loaded by loadRelated() above
+
+// ── TOAST ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>// ── 360° IMAGE VIEWER ────────────────────────────────────────
+let viewer360Angles = [];
+let viewer360Current = 0;
+let viewer360Dragging = false;
+let viewer360StartX = 0;
+let viewer360AutoInterval = null;
+let viewer360Playing = false;
+
+function viewer360Init(angles) {
+  viewer360Angles = angles;
+  viewer360Current = 0;
+  viewer360Show(0);
+
+  // Populate thumbs
+  const thumbs = document.getElementById('viewer360Thumbs');
+  if (thumbs) {
+    thumbs.innerHTML = '';
+    angles.forEach((url, i) => {
+      const labels = ['Hero','Port Hero','Front','Rear','Starboard','Port','Top','Below'];
+      const t = document.createElement('div');
+      t.className = 'angle-thumb' + (i === 0 ? ' active-thumb' : '');
+      t.title = labels[i] || '';
+      t.innerHTML = '<img src="' + url + '" alt="' + (labels[i]||'') + '">';
+      t.addEventListener('click', () => { viewer360Show(i); });
+      thumbs.appendChild(t);
+    });
+  }
+
+  // Drag to rotate
+  const el = document.getElementById('viewer360');
+  if (!el) return;
+  el.addEventListener('mousedown', e => { viewer360Dragging = true; viewer360StartX = e.clientX; viewer360StopAuto(); });
+  el.addEventListener('touchstart', e => { viewer360Dragging = true; viewer360StartX = e.touches[0].clientX; viewer360StopAuto(); });
+  window.addEventListener('mouseup', () => { viewer360Dragging = false; });
+  window.addEventListener('touchend', () => { viewer360Dragging = false; });
+  el.addEventListener('mousemove', e => {
+    if (!viewer360Dragging) return;
+    const dx = e.clientX - viewer360StartX;
+    if (Math.abs(dx) > 30) {
+      viewer360Current = (viewer360Current + (dx > 0 ? -1 : 1) + viewer360Angles.length) % viewer360Angles.length;
+      viewer360Show(viewer360Current);
+      viewer360StartX = e.clientX;
+    }
+  });
+  el.addEventListener('touchmove', e => {
+    if (!viewer360Dragging) return;
+    const dx = e.touches[0].clientX - viewer360StartX;
+    if (Math.abs(dx) > 30) {
+      viewer360Current = (viewer360Current + (dx > 0 ? -1 : 1) + viewer360Angles.length) % viewer360Angles.length;
+      viewer360Show(viewer360Current);
+      viewer360StartX = e.touches[0].clientX;
+    }
+  });
+}
+
+function viewer360Show(i) {
+  viewer360Current = i;
+  const img = document.getElementById('viewer360Img');
+  if (img) img.src = viewer360Angles[i];
+  document.querySelectorAll('#viewer360Thumbs .angle-thumb').forEach((t, j) => {
+    t.classList.toggle('active-thumb', j === i);
+  });
+  const hint = document.getElementById('viewer360Hint');
+  if (hint) hint.style.opacity = '1';
+}
+
+function viewer360Play() {
+  if (viewer360Playing) {
+    viewer360StopAuto();
+  } else {
+    viewer360Playing = true;
+    document.getElementById('viewer360PlayBtn').textContent = '⏸ AUTO';
+    viewer360AutoInterval = setInterval(() => {
+      viewer360Current = (viewer360Current + 1) % viewer360Angles.length;
+      viewer360Show(viewer360Current);
+    }, 400);
+  }
+}
+
+function viewer360StopAuto() {
+  viewer360Playing = false;
+  const btn = document.getElementById('viewer360PlayBtn');
+  if (btn) btn.textContent = '▶ AUTO';
+  clearInterval(viewer360AutoInterval);
+}
+
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.preview-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('active');
+  // 360 viewer initialised by loadShip
 }
 
 // ── THREE.JS 3D PREVIEW ───────────────────────────────────────
