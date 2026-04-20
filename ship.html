@@ -211,7 +211,8 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
         <div class="preview-tabs">
           <button class="preview-tab active" onclick="switchTab('renders',this)">🖼 Renders</button>
           <button class="preview-tab" onclick="switchTab('3d',this)">🔄 360° View</button>
-          <button class="preview-tab" onclick="switchTab('video',this)">▶ YouTube</button>
+          <button class="preview-tab" onclick="switchTab('video',this)">▶ Rotation Video</button>
+          <button class="preview-tab" onclick="switchTab('finished',this)">🖨 Finished Product</button>
         </div>
 
         <!-- 360 Viewer -->
@@ -341,7 +342,7 @@ const shipId = parseInt(params.get('id')) || 1;
 // ── LOAD SHIP FROM SUPABASE ────────────────────────────────────
 async function loadShip() {
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/ships?id=eq.' + shipId + '&select=*', {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/ships?id=eq.' + shipId + '&select=id,name,faction,likes,downloads,created_at,image_url,stl_url,video_url,finished_video_url,price', {
       headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
     });
     const rows = await res.json();
@@ -432,8 +433,9 @@ function switchTab(id, btn) {
   document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.preview-content').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('tab'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('active');
-  // 360 viewer initialised by loadShip
+  var tabId = 'tab' + id.charAt(0).toUpperCase() + id.slice(1);
+  var el = document.getElementById(tabId);
+  if (el) el.classList.add('active');
 }
 
 // ── window.addEventListener('load', () => { loadShip(); }); // initThree called only when 3D tab clicked
@@ -592,8 +594,9 @@ function switchTab(id, btn) {
   document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.preview-content').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('tab'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('active');
-  // 360 viewer initialised by loadShip
+  var tabId = 'tab' + id.charAt(0).toUpperCase() + id.slice(1);
+  var el = document.getElementById(tabId);
+  if (el) el.classList.add('active');
 }
 
 window.addEventListener('load', () => { loadShip(); }); // initThree called only when 3D tab clicked
