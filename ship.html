@@ -335,9 +335,101 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
 <!-- Three.js removed - using 360 image viewer instead -->
 <script src="supabase.js"></script>
 <script>
-// ── SHIP DATA (from URL param, later from Supabase) ───────────
 const params = new URLSearchParams(location.search);
 const shipId = parseInt(params.get('id')) || 1;
+
+// ── 360° IMAGE VIEWER ─────────────────────────────────────────
+let viewer360Angles = [];
+let viewer360Current = 0;
+let viewer360Dragging = false;
+let viewer360StartX = 0;
+let viewer360AutoInterval = null;
+let viewer360Playing = false;
+
+function viewer360Init(angles) {
+  viewer360Angles = angles;
+  viewer360Current = 0;
+  viewer360Show(0);
+  const thumbs = document.getElementById('viewer360Thumbs');
+  if (thumbs) {
+    thumbs.innerHTML = '';
+    const labels = ['Hero','Port Hero','Front','Rear','Starboard','Port','Top','Below'];
+    angles.forEach(function(url, i) {
+      const t = document.createElement('div');
+      t.className = 'angle-thumb' + (i === 0 ? ' active-thumb' : '');
+      t.title = labels[i] || '';
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = labels[i] || '';
+      t.appendChild(img);
+      t.addEventListener('click', function() { viewer360Show(i); });
+      thumbs.appendChild(t);
+    });
+  }
+  const el = document.getElementById('viewer360');
+  if (!el) return;
+  el.addEventListener('mousedown', function(e) { viewer360Dragging = true; viewer360StartX = e.clientX; viewer360StopAuto(); });
+  el.addEventListener('touchstart', function(e) { viewer360Dragging = true; viewer360StartX = e.touches[0].clientX; viewer360StopAuto(); }, {passive:true});
+  window.addEventListener('mouseup', function() { viewer360Dragging = false; });
+  window.addEventListener('touchend', function() { viewer360Dragging = false; });
+  el.addEventListener('mousemove', function(e) {
+    if (!viewer360Dragging) return;
+    const dx = e.clientX - viewer360StartX;
+    if (Math.abs(dx) > 30) {
+      viewer360Current = (viewer360Current + (dx > 0 ? -1 : 1) + viewer360Angles.length) % viewer360Angles.length;
+      viewer360Show(viewer360Current);
+      viewer360StartX = e.clientX;
+    }
+  });
+  el.addEventListener('touchmove', function(e) {
+    if (!viewer360Dragging) return;
+    const dx = e.touches[0].clientX - viewer360StartX;
+    if (Math.abs(dx) > 30) {
+      viewer360Current = (viewer360Current + (dx > 0 ? -1 : 1) + viewer360Angles.length) % viewer360Angles.length;
+      viewer360Show(viewer360Current);
+      viewer360StartX = e.touches[0].clientX;
+    }
+  }, {passive:true});
+}
+
+function viewer360Show(i) {
+  viewer360Current = i;
+  const img = document.getElementById('viewer360Img');
+  if (img) img.src = viewer360Angles[i];
+  document.querySelectorAll('#viewer360Thumbs .angle-thumb').forEach(function(t, j) {
+    t.classList.toggle('active-thumb', j === i);
+  });
+}
+
+function viewer360Play() {
+  if (viewer360Playing) {
+    viewer360StopAuto();
+  } else {
+    viewer360Playing = true;
+    const btn = document.getElementById('viewer360PlayBtn');
+    if (btn) btn.textContent = '⏸ AUTO';
+    viewer360AutoInterval = setInterval(function() {
+      viewer360Current = (viewer360Current + 1) % viewer360Angles.length;
+      viewer360Show(viewer360Current);
+    }, 400);
+  }
+}
+
+function viewer360StopAuto() {
+  viewer360Playing = false;
+  const btn = document.getElementById('viewer360PlayBtn');
+  if (btn) btn.textContent = '▶ AUTO';
+  clearInterval(viewer360AutoInterval);
+}
+
+// ── TABS ───────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.preview-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.preview-content').forEach(function(c) { c.classList.remove('active'); });
+  btn.classList.add('active');
+  const el = document.getElementById('tab' + id.charAt(0).toUpperCase() + id.slice(1));
+  if (el) el.classList.add('active');
+}
 
 // ── LOAD SHIP FROM SUPABASE ────────────────────────────────────
 async function loadShip() {
@@ -359,67 +451,68 @@ async function loadShip() {
     document.getElementById('breadFaction').href         = 'catalogue.html?cat=' + (ship.faction||'');
     document.getElementById('breadName').textContent     = ship.name;
     document.getElementById('metaLikes').textContent     = ship.likes || 0;
-    likeCount = ship.likes || 0;
-    updateLikeBtn();
     document.getElementById('metaDownloads').textContent = ship.downloads || 0;
     document.getElementById('metaAdded').textContent     = ship.created_at ? new Date(ship.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : 'Apr 2026';
-    document.getElementById('shipPrice').textContent     = '£' + price;
-    document.getElementById('buyPrice').textContent      = '£' + price;
+    document.getElementById('shipPrice').textContent     = '\u00a3' + price;
+    document.getElementById('buyPrice').textContent      = '\u00a3' + price;
     document.getElementById('orderPrintBtn').href        = 'order-print.html?ship=' + encodeURIComponent(ship.name);
+    likeCount = ship.likes || 0;
+    updateLikeBtn();
 
     const shareUrl = location.href;
     document.getElementById('shareFB').href  = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
     document.getElementById('shareWA').href  = 'https://wa.me/?text=' + encodeURIComponent(ship.name + ' — Strange New Models: ' + shareUrl);
     document.getElementById('sharePIN').href = 'https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(shareUrl) + '&description=' + encodeURIComponent(ship.name);
 
-    // ── RENDERS TAB ─────────────────────────────────────────────
+    // ── RENDERS TAB ──────────────────────────────────────────────
     const gallery = document.getElementById('rendersThumbGrid');
-    if (ship.image_url) {
-      // Derive all 8 angle URLs from the hero image_url
-      // hero URL pattern: ship-images/slug_hero.jpg
+    if (ship.image_url && gallery) {
       const base = ship.image_url.replace(/_hero\.jpg$/, '');
       const angles = ['hero','hero_port','front','rear','starboard','port','top','below'];
       const labels = ['Hero','Port Hero','Front','Rear','Starboard','Port','Top','Below'];
-      let heroSet = false;
       gallery.innerHTML = '';
-      angles.forEach((angle, i) => {
+      const rh = document.getElementById('rendersHero');
+      if (rh) rh.src = ship.image_url;
+      angles.forEach(function(angle, i) {
         const url = base + '_' + angle + '.jpg';
         const thumb = document.createElement('div');
-        thumb.className = 'angle-thumb';
+        thumb.className = 'angle-thumb' + (i === 0 ? ' active-thumb' : '');
         thumb.title = labels[i];
-        thumb.innerHTML = '<img src="' + url + '" alt="' + labels[i] + '">';
-        thumb.addEventListener('click', () => {
-          const rh = document.getElementById('rendersHero'); if(rh) rh.src = url;
-          document.querySelectorAll('.angle-thumb').forEach(t => t.classList.remove('active-thumb'));
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = labels[i];
+        thumb.appendChild(img);
+        thumb.addEventListener('click', function() {
+          if (rh) rh.src = url;
+          document.querySelectorAll('#rendersThumbGrid .angle-thumb').forEach(function(t) { t.classList.remove('active-thumb'); });
           thumb.classList.add('active-thumb');
         });
         gallery.appendChild(thumb);
-        // Set hero image as main preview
-        if (!heroSet) {
-          const heroImg = document.getElementById('heroImage');
-          const rh2 = document.getElementById('rendersHero'); if(rh2) rh2.src = url;
-          heroSet = true;
-        }
       });
-      // Also show hero in 3D tab placeholder while STL loads
-      const rh3 = document.getElementById('rendersHero'); if(rh3) rh3.src = ship.image_url;
-    } else {
-      gallery.innerHTML = '<p style="color:var(--dim);padding:24px;grid-column:1/-1;text-align:center">No renders available yet</p>';
     }
 
-    // ── 360° VIEWER — init with angle images ─────────────────
+    // ── 360° VIEWER ───────────────────────────────────────────────
     if (ship.image_url) {
       const base360 = ship.image_url.replace(/_hero\.jpg$/, '');
-      const angles360 = ['hero','hero_port','front','rear','starboard','port','top','below'].map(a => base360 + '_' + a + '.jpg');
+      const angles360 = ['hero','hero_port','front','rear','starboard','port','top','below'].map(function(a) { return base360 + '_' + a + '.jpg'; });
       viewer360Init(angles360);
     }
 
-    // ── VIDEO TAB ────────────────────────────────────────────────
+    // ── ROTATION VIDEO TAB ────────────────────────────────────────
     if (ship.video_url) {
       const videoWrap = document.querySelector('#tabVideo .video-wrap');
-      const ytId = ship.video_url.match(/(?:v=|youtu\.be\/)([\w-]{11})/);
-      if (ytId) {
-        videoWrap.innerHTML = '<iframe src="https://www.youtube.com/embed/' + ytId[1] + '?autoplay=0" allowfullscreen></iframe>';
+      const ytMatch = ship.video_url.match(/(?:v=|youtu\.be\/|shorts\/)(\w[\w-]{10})/);
+      if (ytMatch && videoWrap) {
+        videoWrap.innerHTML = '<iframe src="https://www.youtube.com/embed/' + ytMatch[1] + '?autoplay=0" allowfullscreen style="width:100%;height:100%;border:none"></iframe>';
+      }
+    }
+
+    // ── FINISHED PRODUCT TAB ──────────────────────────────────────
+    if (ship.finished_video_url) {
+      const finWrap = document.querySelector('#tabFinished .video-wrap');
+      const ytMatch2 = ship.finished_video_url.match(/(?:v=|youtu\.be\/|shorts\/)(\w[\w-]{10})/);
+      if (ytMatch2 && finWrap) {
+        finWrap.innerHTML = '<iframe src="https://www.youtube.com/embed/' + ytMatch2[1] + '?autoplay=0" allowfullscreen style="width:100%;height:100%;border:none"></iframe>';
       }
     }
 
@@ -428,30 +521,21 @@ async function loadShip() {
   }
 }
 
-// ── TABS ──────────────────────────────────────────────────────
-function switchTab(id, btn) {
-  document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.preview-content').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  var tabId = 'tab' + id.charAt(0).toUpperCase() + id.slice(1);
-  var el = document.getElementById(tabId);
-  if (el) el.classList.add('active');
-}
+// ── INIT ───────────────────────────────────────────────────────
+window.addEventListener('load', function() { loadShip(); });
 
-// ── 
-window.addEventListener('load', () => { loadShip(); }); // initThree called only when 3D tab clicked
-
-// ── LIKE ──────────────────────────────────────────────────────
+// ── LIKE ───────────────────────────────────────────────────────
 let liked = JSON.parse(localStorage.getItem('likedShips')||'[]').includes(shipId);
 let likeCount = 0;
 
 function updateLikeBtn() {
   const btn = document.getElementById('likeBtn');
-  btn.innerHTML = liked ? '❤ <span id="likeLabel">Liked</span>' : '🤍 <span id="likeLabel">Like</span>';
+  if (!btn) return;
+  btn.innerHTML = liked ? '\u2764 <span id="likeLabel">Liked</span>' : '\ud83e\udd0d <span id="likeLabel">Like</span>';
   btn.classList.toggle('liked', liked);
   document.getElementById('metaLikes').textContent = likeCount + (liked?1:0);
 }
-// updateLikeBtn called after ship loads
+updateLikeBtn();
 
 async function toggleLike() {
   const stored = JSON.parse(localStorage.getItem('likedShips')||'[]');
@@ -462,281 +546,41 @@ async function toggleLike() {
   } else {
     stored.push(shipId);
     liked = true;
-    showToast('❤ Added to likes!');
-    likeShip(shipId).catch(()=>{});
+    showToast('\u2764 Added to likes!');
+    likeShip(shipId).catch(function(){});
   }
   localStorage.setItem('likedShips', JSON.stringify(stored));
   updateLikeBtn();
 }
 
-// ── SHARE ─────────────────────────────────────────────────────
+// ── SHARE ──────────────────────────────────────────────────────
 function toggleShare() {
   document.getElementById('sharePanel').classList.toggle('show');
 }
 function copyLink() {
   navigator.clipboard.writeText(location.href);
-  showToast('🔗 Link copied!');
+  showToast('\ud83d\udd17 Link copied!');
   document.getElementById('sharePanel').classList.remove('show');
 }
-document.addEventListener('click', e => {
+document.addEventListener('click', function(e) {
   if (!e.target.closest('[onclick="toggleShare()"]') && !e.target.closest('#sharePanel'))
     document.getElementById('sharePanel').classList.remove('show');
 });
 
-// ── BUY ───────────────────────────────────────────────────────
+// ── BUY ────────────────────────────────────────────────────────
 function buyNow() {
-  // TODO: wire to Stripe checkout session
-  showToast('🛒 Checkout coming soon! (Stripe being set up)');
+  showToast('\ud83d\uded2 Checkout coming soon! (Stripe being set up)');
 }
-
 function addToWishlist() {
-  showToast('⭐ Added to wishlist! (Log in to save permanently)');
+  showToast('\u2b50 Added to wishlist! (Log in to save permanently)');
 }
 
-// Related ships loaded by loadRelated() above
-
-// ── TOAST ─────────────────────────────────────────────────────
+// ── TOAST ──────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-</script>
-</body>
-</html>// ── TABS ──────────────────────────────────────────────────────
-function switchTab(id, btn) {
-  document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.preview-content').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  var tabId = 'tab' + id.charAt(0).toUpperCase() + id.slice(1);
-  var el = document.getElementById(tabId);
-  if (el) el.classList.add('active');
-}
-
-// ── window.addEventListener('load', () => { loadShip(); }); // initThree called only when 3D tab clicked
-
-// ── LIKE ──────────────────────────────────────────────────────
-let liked = JSON.parse(localStorage.getItem('likedShips')||'[]').includes(shipId);
-let likeCount = 0;
-
-function updateLikeBtn() {
-  const btn = document.getElementById('likeBtn');
-  btn.innerHTML = liked ? '❤ <span id="likeLabel">Liked</span>' : '🤍 <span id="likeLabel">Like</span>';
-  btn.classList.toggle('liked', liked);
-  document.getElementById('metaLikes').textContent = likeCount + (liked?1:0);
-}
-// updateLikeBtn called after ship loads
-
-async function toggleLike() {
-  const stored = JSON.parse(localStorage.getItem('likedShips')||'[]');
-  if (liked) {
-    stored.splice(stored.indexOf(shipId),1);
-    liked = false;
-    showToast('Like removed');
-  } else {
-    stored.push(shipId);
-    liked = true;
-    showToast('❤ Added to likes!');
-    likeShip(shipId).catch(()=>{});
-  }
-  localStorage.setItem('likedShips', JSON.stringify(stored));
-  updateLikeBtn();
-}
-
-// ── SHARE ─────────────────────────────────────────────────────
-function toggleShare() {
-  document.getElementById('sharePanel').classList.toggle('show');
-}
-function copyLink() {
-  navigator.clipboard.writeText(location.href);
-  showToast('🔗 Link copied!');
-  document.getElementById('sharePanel').classList.remove('show');
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('[onclick="toggleShare()"]') && !e.target.closest('#sharePanel'))
-    document.getElementById('sharePanel').classList.remove('show');
-});
-
-// ── BUY ───────────────────────────────────────────────────────
-function buyNow() {
-  // TODO: wire to Stripe checkout session
-  showToast('🛒 Checkout coming soon! (Stripe being set up)');
-}
-
-function addToWishlist() {
-  showToast('⭐ Added to wishlist! (Log in to save permanently)');
-}
-
-// Related ships loaded by loadRelated() above
-
-// ── TOAST ─────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-</script>
-</body>
-</html>// ── 360° IMAGE VIEWER ────────────────────────────────────────
-let viewer360Angles = [];
-let viewer360Current = 0;
-let viewer360Dragging = false;
-let viewer360StartX = 0;
-let viewer360AutoInterval = null;
-let viewer360Playing = false;
-
-function viewer360Init(angles) {
-  viewer360Angles = angles;
-  viewer360Current = 0;
-  viewer360Show(0);
-
-  // Populate thumbs
-  const thumbs = document.getElementById('viewer360Thumbs');
-  if (thumbs) {
-    thumbs.innerHTML = '';
-    angles.forEach((url, i) => {
-      const labels = ['Hero','Port Hero','Front','Rear','Starboard','Port','Top','Below'];
-      const t = document.createElement('div');
-      t.className = 'angle-thumb' + (i === 0 ? ' active-thumb' : '');
-      t.title = labels[i] || '';
-      t.innerHTML = '<img src="' + url + '" alt="' + (labels[i]||'') + '">';
-      t.addEventListener('click', () => { viewer360Show(i); });
-      thumbs.appendChild(t);
-    });
-  }
-
-  // Drag to rotate
-  const el = document.getElementById('viewer360');
-  if (!el) return;
-  el.addEventListener('mousedown', e => { viewer360Dragging = true; viewer360StartX = e.clientX; viewer360StopAuto(); });
-  el.addEventListener('touchstart', e => { viewer360Dragging = true; viewer360StartX = e.touches[0].clientX; viewer360StopAuto(); });
-  window.addEventListener('mouseup', () => { viewer360Dragging = false; });
-  window.addEventListener('touchend', () => { viewer360Dragging = false; });
-  el.addEventListener('mousemove', e => {
-    if (!viewer360Dragging) return;
-    const dx = e.clientX - viewer360StartX;
-    if (Math.abs(dx) > 30) {
-      viewer360Current = (viewer360Current + (dx > 0 ? -1 : 1) + viewer360Angles.length) % viewer360Angles.length;
-      viewer360Show(viewer360Current);
-      viewer360StartX = e.clientX;
-    }
-  });
-  el.addEventListener('touchmove', e => {
-    if (!viewer360Dragging) return;
-    const dx = e.touches[0].clientX - viewer360StartX;
-    if (Math.abs(dx) > 30) {
-      viewer360Current = (viewer360Current + (dx > 0 ? -1 : 1) + viewer360Angles.length) % viewer360Angles.length;
-      viewer360Show(viewer360Current);
-      viewer360StartX = e.touches[0].clientX;
-    }
-  });
-}
-
-function viewer360Show(i) {
-  viewer360Current = i;
-  const img = document.getElementById('viewer360Img');
-  if (img) img.src = viewer360Angles[i];
-  document.querySelectorAll('#viewer360Thumbs .angle-thumb').forEach((t, j) => {
-    t.classList.toggle('active-thumb', j === i);
-  });
-  const hint = document.getElementById('viewer360Hint');
-  if (hint) hint.style.opacity = '1';
-}
-
-function viewer360Play() {
-  if (viewer360Playing) {
-    viewer360StopAuto();
-  } else {
-    viewer360Playing = true;
-    document.getElementById('viewer360PlayBtn').textContent = '⏸ AUTO';
-    viewer360AutoInterval = setInterval(() => {
-      viewer360Current = (viewer360Current + 1) % viewer360Angles.length;
-      viewer360Show(viewer360Current);
-    }, 400);
-  }
-}
-
-function viewer360StopAuto() {
-  viewer360Playing = false;
-  const btn = document.getElementById('viewer360PlayBtn');
-  if (btn) btn.textContent = '▶ AUTO';
-  clearInterval(viewer360AutoInterval);
-}
-
-// ── TABS ──────────────────────────────────────────────────────
-function switchTab(id, btn) {
-  document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.preview-content').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  var tabId = 'tab' + id.charAt(0).toUpperCase() + id.slice(1);
-  var el = document.getElementById(tabId);
-  if (el) el.classList.add('active');
-}
-
-window.addEventListener('load', () => { loadShip(); }); // initThree called only when 3D tab clicked
-
-// ── LIKE ──────────────────────────────────────────────────────
-let liked = JSON.parse(localStorage.getItem('likedShips')||'[]').includes(shipId);
-let likeCount = 0;
-
-function updateLikeBtn() {
-  const btn = document.getElementById('likeBtn');
-  btn.innerHTML = liked ? '❤ <span id="likeLabel">Liked</span>' : '🤍 <span id="likeLabel">Like</span>';
-  btn.classList.toggle('liked', liked);
-  document.getElementById('metaLikes').textContent = likeCount + (liked?1:0);
-}
-// updateLikeBtn called after ship loads
-
-async function toggleLike() {
-  const stored = JSON.parse(localStorage.getItem('likedShips')||'[]');
-  if (liked) {
-    stored.splice(stored.indexOf(shipId),1);
-    liked = false;
-    showToast('Like removed');
-  } else {
-    stored.push(shipId);
-    liked = true;
-    showToast('❤ Added to likes!');
-    likeShip(shipId).catch(()=>{});
-  }
-  localStorage.setItem('likedShips', JSON.stringify(stored));
-  updateLikeBtn();
-}
-
-// ── SHARE ─────────────────────────────────────────────────────
-function toggleShare() {
-  document.getElementById('sharePanel').classList.toggle('show');
-}
-function copyLink() {
-  navigator.clipboard.writeText(location.href);
-  showToast('🔗 Link copied!');
-  document.getElementById('sharePanel').classList.remove('show');
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('[onclick="toggleShare()"]') && !e.target.closest('#sharePanel'))
-    document.getElementById('sharePanel').classList.remove('show');
-});
-
-// ── BUY ───────────────────────────────────────────────────────
-function buyNow() {
-  // TODO: wire to Stripe checkout session
-  showToast('🛒 Checkout coming soon! (Stripe being set up)');
-}
-
-function addToWishlist() {
-  showToast('⭐ Added to wishlist! (Log in to save permanently)');
-}
-
-// Related ships loaded by loadRelated() above
-
-// ── TOAST ─────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
 }
 </script>
 </body>
