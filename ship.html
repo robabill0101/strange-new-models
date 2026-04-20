@@ -438,6 +438,82 @@ function switchTab(id, btn) {
   if (el) el.classList.add('active');
 }
 
+// ── 
+window.addEventListener('load', () => { loadShip(); }); // initThree called only when 3D tab clicked
+
+// ── LIKE ──────────────────────────────────────────────────────
+let liked = JSON.parse(localStorage.getItem('likedShips')||'[]').includes(shipId);
+let likeCount = 0;
+
+function updateLikeBtn() {
+  const btn = document.getElementById('likeBtn');
+  btn.innerHTML = liked ? '❤ <span id="likeLabel">Liked</span>' : '🤍 <span id="likeLabel">Like</span>';
+  btn.classList.toggle('liked', liked);
+  document.getElementById('metaLikes').textContent = likeCount + (liked?1:0);
+}
+// updateLikeBtn called after ship loads
+
+async function toggleLike() {
+  const stored = JSON.parse(localStorage.getItem('likedShips')||'[]');
+  if (liked) {
+    stored.splice(stored.indexOf(shipId),1);
+    liked = false;
+    showToast('Like removed');
+  } else {
+    stored.push(shipId);
+    liked = true;
+    showToast('❤ Added to likes!');
+    likeShip(shipId).catch(()=>{});
+  }
+  localStorage.setItem('likedShips', JSON.stringify(stored));
+  updateLikeBtn();
+}
+
+// ── SHARE ─────────────────────────────────────────────────────
+function toggleShare() {
+  document.getElementById('sharePanel').classList.toggle('show');
+}
+function copyLink() {
+  navigator.clipboard.writeText(location.href);
+  showToast('🔗 Link copied!');
+  document.getElementById('sharePanel').classList.remove('show');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('[onclick="toggleShare()"]') && !e.target.closest('#sharePanel'))
+    document.getElementById('sharePanel').classList.remove('show');
+});
+
+// ── BUY ───────────────────────────────────────────────────────
+function buyNow() {
+  // TODO: wire to Stripe checkout session
+  showToast('🛒 Checkout coming soon! (Stripe being set up)');
+}
+
+function addToWishlist() {
+  showToast('⭐ Added to wishlist! (Log in to save permanently)');
+}
+
+// Related ships loaded by loadRelated() above
+
+// ── TOAST ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>// ── TABS ──────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.preview-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  var tabId = 'tab' + id.charAt(0).toUpperCase() + id.slice(1);
+  var el = document.getElementById(tabId);
+  if (el) el.classList.add('active');
+}
+
 // ── window.addEventListener('load', () => { loadShip(); }); // initThree called only when 3D tab clicked
 
 // ── LIKE ──────────────────────────────────────────────────────
