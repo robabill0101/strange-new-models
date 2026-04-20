@@ -70,6 +70,9 @@ nav { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(4,8,
   background:linear-gradient(135deg, #040c1a 0%, #0a1830 100%);
 }
 #previewCanvas3D:active { cursor:grabbing; }
+#viewer360 { cursor:grab; }
+#viewer360:active { cursor:grabbing; }
+#viewer360Img { transition: opacity 0.08s ease; }
 
 .canvas-hint {
   position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
@@ -373,7 +376,7 @@ function viewer360Init(angles) {
   window.addEventListener('mouseup', function() { viewer360Dragging = false; });
   window.addEventListener('touchend', function() { viewer360Dragging = false; });
   var dragAccum = 0;
-  var stepSize = 40; // pixels per angle step - lower = more sensitive
+  var stepSize = 25; // pixels per angle step - lower = more sensitive
   el.addEventListener('mousemove', function(e) {
     if (!viewer360Dragging) return;
     dragAccum += e.clientX - viewer360StartX;
@@ -393,7 +396,11 @@ function viewer360Init(angles) {
 function viewer360Show(i) {
   viewer360Current = i;
   const img = document.getElementById('viewer360Img');
-  if (img) img.src = viewer360Angles[i];
+  if (img && img.src !== viewer360Angles[i]) {
+    img.style.opacity = '0.7';
+    img.src = viewer360Angles[i];
+    img.onload = function() { img.style.opacity = '1'; };
+  }
   document.querySelectorAll('#viewer360Thumbs .angle-thumb').forEach(function(t, j) {
     t.classList.toggle('active-thumb', j === i);
   });
