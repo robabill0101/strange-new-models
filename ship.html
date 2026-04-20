@@ -368,27 +368,25 @@ function viewer360Init(angles) {
   }
   const el = document.getElementById('viewer360');
   if (!el) return;
-  el.addEventListener('mousedown', function(e) { viewer360Dragging = true; viewer360StartX = e.clientX; viewer360StopAuto(); });
-  el.addEventListener('touchstart', function(e) { viewer360Dragging = true; viewer360StartX = e.touches[0].clientX; viewer360StopAuto(); }, {passive:true});
+  el.addEventListener('mousedown', function(e) { viewer360Dragging = true; viewer360StartX = e.clientX; dragAccum = 0; viewer360StopAuto(); });
+  el.addEventListener('touchstart', function(e) { viewer360Dragging = true; viewer360StartX = e.touches[0].clientX; dragAccum = 0; viewer360StopAuto(); }, {passive:true});
   window.addEventListener('mouseup', function() { viewer360Dragging = false; });
   window.addEventListener('touchend', function() { viewer360Dragging = false; });
+  var dragAccum = 0;
+  var stepSize = 40; // pixels per angle step - lower = more sensitive
   el.addEventListener('mousemove', function(e) {
     if (!viewer360Dragging) return;
-    const dx = e.clientX - viewer360StartX;
-    if (Math.abs(dx) > 30) {
-      viewer360Current = (viewer360Current + (dx > 0 ? -1 : 1) + viewer360Angles.length) % viewer360Angles.length;
-      viewer360Show(viewer360Current);
-      viewer360StartX = e.clientX;
-    }
+    dragAccum += e.clientX - viewer360StartX;
+    viewer360StartX = e.clientX;
+    while (dragAccum > stepSize) { dragAccum -= stepSize; viewer360Current = (viewer360Current - 1 + viewer360Angles.length) % viewer360Angles.length; viewer360Show(viewer360Current); }
+    while (dragAccum < -stepSize) { dragAccum += stepSize; viewer360Current = (viewer360Current + 1) % viewer360Angles.length; viewer360Show(viewer360Current); }
   });
   el.addEventListener('touchmove', function(e) {
     if (!viewer360Dragging) return;
-    const dx = e.touches[0].clientX - viewer360StartX;
-    if (Math.abs(dx) > 30) {
-      viewer360Current = (viewer360Current + (dx > 0 ? -1 : 1) + viewer360Angles.length) % viewer360Angles.length;
-      viewer360Show(viewer360Current);
-      viewer360StartX = e.touches[0].clientX;
-    }
+    dragAccum += e.touches[0].clientX - viewer360StartX;
+    viewer360StartX = e.touches[0].clientX;
+    while (dragAccum > stepSize) { dragAccum -= stepSize; viewer360Current = (viewer360Current - 1 + viewer360Angles.length) % viewer360Angles.length; viewer360Show(viewer360Current); }
+    while (dragAccum < -stepSize) { dragAccum += stepSize; viewer360Current = (viewer360Current + 1) % viewer360Angles.length; viewer360Show(viewer360Current); }
   }, {passive:true});
 }
 
